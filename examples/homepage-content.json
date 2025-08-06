@@ -1,0 +1,107 @@
+{
+  "pageType": "home",
+  "language": "en",
+  "isActive": true,
+  "sections": {
+    "hero": {
+      "title": "Welcome to Our Modern CMS",
+      "subtitle": "Build beautiful, responsive websites with our powerful block-based editor",
+      "backgroundImage": "/images/hero-bg.jpg",
+      "ctaText": "Get Started",
+      "ctaLink": "/contact"
+    },
+    "features": [
+      {
+        "title": "Block-Based Editing",
+        "subtitle": "Create rich content with our intuitive block editor",
+        "icon": "block-editor",
+        "content": {
+          "time": 1620000000000,
+          "version": "2.27.0",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "data": {
+                "text": "Our block-based editor makes it easy to create beautiful, responsive content without writing a single line of code."
+              }
+            }
+          ]
+        },
+        "order": 1
+      },
+      {
+        "title": "Multi-Language Support",
+        "subtitle": "Reach a global audience with built-in i18n",
+        "icon": "language",
+        "content": {
+          "time": 1620000000000,
+          "version": "2.27.0",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "data": {
+                "text": "Fully supports multiple languages with RTL support for languages like Arabic and Hebrew."
+              }
+            }
+          ]
+        },
+        "order": 2
+      },
+      {
+        "title": "SEO Optimized",
+        "subtitle": "Built with SEO best practices in mind",
+        "icon": "seo",
+        "content": {
+          "time": 1620000000000,
+          "version": "2.27.0",
+          "blocks": [
+            {
+              "type": "paragraph",
+              "data": {
+                "text": "Automatic sitemap generation, meta tags, and structured data to help your content rank higher in search results."
+              }
+            }
+          ]
+        },
+        "order": 3
+      }
+    ],
+    "services": {
+      "title": "Our Services",
+      "subtitle": "What we can do for you",
+      "featuredServices": [
+        "60d21b4667d0d8992e610c85",
+        "60d21b4667d0d8992e610c86",
+        "60d21b4667d0d8992e610c87"
+      ]
+    },
+    "clients": {
+      "title": "Trusted By",
+      "logos": [
+        {
+          "image": "/images/clients/company1.png",
+          "name": "Company 1",
+          "url": "https://company1.com"
+        },
+        {
+          "image": "/images/clients/company2.png",
+          "name": "Company 2",
+          "url": "https://company2.com"
+        },
+        {
+          "image": "/images/clients/company3.png",
+          "name": "Company 3",
+          "url": "https://company3.com"
+        }
+      ]
+    }
+  },
+  "seo": {
+    "metaTitle": "Modern CMS - Build Beautiful Websites",
+    "metaDescription": "A powerful, flexible CMS with block-based editing and multi-language support",
+    "metaKeywords": ["cms", "website builder", "block editor", "headless cms"],
+    "ogTitle": "Modern CMS - Build Beautiful Websites",
+    "ogDescription": "A powerful, flexible CMS with block-based editing and multi-language support",
+    "ogImage": "/images/og-image.jpg"
+  }
+}

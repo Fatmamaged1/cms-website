@@ -1,0 +1,140 @@
+{
+  "info": {
+    "name": "CMS API Collection",
+    "description": "Complete collection of all CMS API endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [{"key":"Content-Type","value":"application/json"}],
+            "body": {"mode":"raw","raw":"{\n    \"email\": \"admin@example.com\",\n    \"password\": \"admin123\"\n}"},
+            "url": "{{base_url}}/api/v1/auth/login"
+          }
+        },
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [{"key":"Content-Type","value":"application/json"}],
+            "body": {"mode":"raw","raw":"{\n    \"name\": \"User Name\",\n    \"email\": \"user@example.com\",\n    \"password\": \"password123\"\n}"},
+            "url": "{{base_url}}/api/v1/auth/register"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Blogs",
+      "item": [
+        {"name":"Get All", "request": {"method":"GET", "url":"{{base_url}}/api/v1/blogs"}},
+        {"name":"Get Single", "request": {"method":"GET", "url":"{{base_url}}/api/v1/blogs/:id"}},
+        {
+          "name": "Create",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key":"Authorization", "value":"Bearer {{token}}"},
+              {"key":"Content-Type", "value":"multipart/form-data"}
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {"key":"title", "value":"New Blog"},
+                {"key":"content", "value":"Blog content"},
+                {"key":"featuredImage", "type":"file"}
+              ]
+            },
+            "url": "{{base_url}}/api/v1/blogs"
+          }
+        },
+        {"name":"Update", "request": {"method":"PUT", "url":"{{base_url}}/api/v1/blogs/:id"}},
+        {"name":"Delete", "request": {"method":"DELETE", "url":"{{base_url}}/api/v1/blogs/:id"}}
+      ]
+    },
+    {
+      "name": "Pages",
+      "item": [
+        {"name":"Get All", "request": {"method":"GET", "url":"{{base_url}}/api/v1/pages"}},
+        {"name":"Get by Type", "request": {"method":"GET", "url":"{{base_url}}/api/v1/pages/:type"}},
+        {
+          "name": "Create/Update",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key":"Authorization", "value":"Bearer {{token}}"},
+              {"key":"Content-Type", "value":"multipart/form-data"}
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {"key":"pageType", "value":"home"},
+                {"key":"title", "value":"Home Page"},
+                {"key":"featuredImage", "type":"file"}
+              ]
+            },
+            "url": "{{base_url}}/api/v1/pages"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Services",
+      "item": [
+        {"name":"Get All", "request": {"method":"GET", "url":"{{base_url}}/api/v1/services"}},
+        {"name":"Get Single", "request": {"method":"GET", "url":"{{base_url}}/api/v1/services/:id"}},
+        {
+          "name": "Create",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key":"Authorization", "value":"Bearer {{token}}"},
+              {"key":"Content-Type", "value":"multipart/form-data"}
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {"key":"title", "value":"New Service"},
+                {"key":"description", "value":"Service description"},
+                {"key":"featuredImage", "type":"file"}
+              ]
+            },
+            "url": "{{base_url}}/api/v1/services"
+          }
+        },
+        {"name":"Update", "request": {"method":"PUT", "url":"{{base_url}}/api/v1/services/:id"}},
+        {"name":"Delete", "request": {"method":"DELETE", "url":"{{base_url}}/api/v1/services/:id"}}
+      ]
+    },
+    {
+      "name": "Careers",
+      "item": [
+        {"name":"Get All Jobs", "request": {"method":"GET", "url":"{{base_url}}/api/v1/careers"}},
+        {
+          "name": "Apply for Job",
+          "request": {
+            "method": "POST",
+            "header": [{"key":"Content-Type", "value":"multipart/form-data"}],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {"key":"fullName", "value":"John Doe"},
+                {"key":"email", "value":"john@example.com"},
+                {"key":"resume", "type":"file"}
+              ]
+            },
+            "url": "{{base_url}}/api/v1/careers/:id/apply"
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {"key": "base_url", "value": "http://localhost:3000"},
+    {"key": "token", "value": "your_jwt_token_here"}
+  ]
+}

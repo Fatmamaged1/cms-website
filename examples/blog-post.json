@@ -1,0 +1,171 @@
+{
+  "title": "Getting Started with Our Block-Based CMS",
+  "subtitle": "A comprehensive guide to creating your first content",
+  "slug": "getting-started-with-our-block-based-cms",
+  "excerpt": "Learn how to create and manage content using our powerful block-based editor.",
+  "thumbnail": "/images/blog/getting-started-thumbnail.jpg",
+  "featuredImage": "/images/blog/getting-started-featured.jpg",
+  "language": "en",
+  "isActive": true,
+  "status": "published",
+  "publishedAt": "2023-06-15T10:00:00.000Z",
+  "author": "60d21b4667d0d8992e610c88",
+  "categories": ["60d21b4667d0d8992e610c89"],
+  "tags": ["cms", "tutorial", "getting started"],
+  "content": {
+    "time": 1686830400000,
+    "version": "2.27.0",
+    "blocks": [
+      {
+        "type": "header",
+        "data": {
+          "text": "Introduction to Block-Based Editing",
+          "level": 2
+        }
+      },
+      {
+        "type": "paragraph",
+        "data": {
+          "text": "Welcome to our block-based CMS! This powerful editor allows you to create rich, engaging content without any technical knowledge. Each piece of content is built using blocks, which you can easily add, remove, and rearrange."
+        }
+      },
+      {
+        "type": "image",
+        "data": {
+          "file": {
+            "url": "/images/blog/block-editor-screenshot.jpg"
+          },
+          "caption": "Our intuitive block editor interface",
+          "withBorder": false,
+          "stretched": true,
+          "withBackground": false
+        }
+      },
+      {
+        "type": "header",
+        "data": {
+          "text": "Creating Your First Block",
+          "level": 3
+        }
+      },
+      {
+        "type": "list",
+        "data": {
+          "style": "ordered",
+          "items": [
+            "Click the '+' button to add a new block",
+            "Select the type of block you want to add (paragraph, header, image, etc.)",
+            "Enter your content in the block",
+            "Use the toolbar to format your content",
+            "Drag and drop blocks to rearrange them"
+          ]
+        }
+      },
+      {
+        "type": "quote",
+        "data": {
+          "text": "The block-based editor has completely transformed how we create content. It's intuitive, powerful, and flexible enough for all our needs.",
+          "caption": "Sarah Johnson, Content Manager",
+          "alignment": "left"
+        }
+      },
+      {
+        "type": "header",
+        "data": {
+          "text": "Advanced Features",
+          "level": 3
+        }
+      },
+      {
+        "type": "paragraph",
+        "data": {
+          "text": "Our block editor comes with a variety of advanced features to enhance your content:"
+        }
+      },
+      {
+        "type": "table",
+        "data": {
+          "withHeadings": true,
+          "content": [
+            ["Feature", "Description", "Benefit"],
+            ["Media Library", "Easily upload and manage images and videos", "Streamlined workflow"],
+            ["Custom Blocks", "Create and save your own reusable blocks", "Consistent branding"],
+            ["Keyboard Shortcuts", "Speed up your workflow with shortcuts", "Faster content creation"],
+            ["Version History", "Track changes and revert to previous versions", "Peace of mind"]
+          ]
+        }
+      },
+      {
+        "type": "delimiter",
+        "data": {}
+      },
+      {
+        "type": "header",
+        "data": {
+          "text": "Best Practices",
+          "level": 3
+        }
+      },
+      {
+        "type": "checklist",
+        "data": {
+          "items": [
+            {
+              "text": "Keep paragraphs short and focused",
+              "checked": true
+            },
+            {
+              "text": "Use headers to structure your content",
+              "checked": true
+            },
+            {
+              "text": "Add relevant images and media",
+              "checked": true
+            },
+            {
+              "text": "Optimize images for web",
+              "checked": false
+            },
+            {
+              "text": "Use the preview function before publishing",
+              "checked": false
+            }
+          ]
+        }
+      },
+      {
+        "type": "header",
+        "data": {
+          "text": "Conclusion",
+          "level": 2
+        }
+      },
+      {
+        "type": "paragraph",
+        "data": {
+          "text": "With our block-based CMS, creating beautiful, engaging content has never been easier. Whether you're a beginner or an experienced content creator, you'll find the tools you need to bring your ideas to life."
+        }
+      },
+      {
+        "type": "callToAction",
+        "data": {
+          "text": "Ready to get started?",
+          "buttonText": "Create Your First Post",
+          "buttonUrl": "/admin/posts/new"
+        }
+      }
+    ]
+  },
+  "seo": {
+    "metaTitle": "Getting Started with Our Block-Based CMS | YourSite",
+    "metaDescription": "Learn how to create and manage content using our powerful block-based editor. Perfect for beginners and experienced users alike.",
+    "metaKeywords": ["cms tutorial", "block editor", "content creation", "getting started"],
+    "ogTitle": "Getting Started with Our Block-Based CMS",
+    "ogDescription": "Learn how to create and manage content using our powerful block-based editor. Perfect for beginners and experienced users alike.",
+    "ogImage": "/images/blog/getting-started-og.jpg"
+  },
+  "relatedPosts": [
+    "60d21b4667d0d8992e610c8a",
+    "60d21b4667d0d8992e610c8b"
+  ]
+}
