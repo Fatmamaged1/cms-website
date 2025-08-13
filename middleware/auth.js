@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const { UnauthorizedError, ForbiddenError } = require('../utils/errors.js');
-const User = require('../models/User.js');
+//const User = require('../models/User.js');
 
 // Protect routes - user must be authenticated
 const isAuthenticated = async (req, res, next) => {

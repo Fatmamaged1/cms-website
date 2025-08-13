@@ -92,7 +92,7 @@ const handleUpload = (fieldName = 'image', type = 'image') => {
   
 
 // Multiple files upload
-const handleMultipleUploads = (fieldName, maxCount = 5, type = 'image') => {
+const handleMultipleUploads = (fieldName, maxCount = 10, type = 'image') => {
   const upload = type === 'image' 
     ? uploadImage.array(fieldName, maxCount) 
     : uploadFile.array(fieldName, maxCount);
