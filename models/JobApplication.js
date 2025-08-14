@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const BaseModel = require('./BaseModel');
+const path = require('path');
 const { APPLICATION_STATUS } = require('../constants/applicationStatus');
 
 const jobApplicationSchema = new mongoose.Schema({
@@ -164,9 +165,16 @@ const jobApplicationSchema = new mongoose.Schema({
   discriminatorKey: 'contentType',
   timestamps: true 
 });
+jobApplicationSchema.pre('save', function(next) {
+  if (!this.slug) {
+    this.slug = `${this.fullName}-${Date.now()}`;
+  }
+  next();
+});
 
 // Create a compound index for job and email to prevent duplicate applications
 jobApplicationSchema.index({ job: 1, email: 1 }, { unique: true });
+jobApplicationSchema.index({ slug: 1 }, { unique: true, sparse: true });
 
 // Create the JobApplication model by extending BaseModel
 const JobApplication = BaseModel.discriminator('JobApplication', jobApplicationSchema);

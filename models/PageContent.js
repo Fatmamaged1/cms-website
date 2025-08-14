@@ -35,14 +35,17 @@ const pageContentSchema = new mongoose.Schema({
     about: {
       title: String,
       subtitle: String,
+    
       content: blockContentSchema,
       features: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Feature'
       }],
+      image: String,
       mainImage: String,
       secondaryImage: String
     },
+   
     features: [{
       title: String,
       subtitle: String,

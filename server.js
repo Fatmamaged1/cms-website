@@ -18,6 +18,7 @@ const serviceRoutes = require('./routes/services');
 const blogRoutes = require('./routes/blogs');
 const careerRoutes = require('./routes/careers');
 const contactRoutes = require('./routes/contact');
+const aboutRoutes = require('./routes/about');
 const { errorHandler } = require('./utils/errors');
 
 // Initialize express app
@@ -100,8 +101,10 @@ app.use('/api/v1/pages', pageRoutes);
 app.use('/api/v1/services', serviceRoutes);
 app.use('/api/v1/blogs', blogRoutes);
 app.use('/api/v1/careers', careerRoutes);
+app.use('/api/v1/about', aboutRoutes);
 app.use('/api/v1/contact', contactRoutes);
-
+// Serve uploads folder statically
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 // Serve static assets in production
 if (process.env.NODE_ENV === 'production') {
   // Set static folder
@@ -112,8 +115,9 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
+
 // Handle 404 - Keep this as the last route
-app.all('*', (req, res, next) => {
+app.all('*', (req, res) => {
   res.status(404).json({
     status: 'fail',
     message: `Can't find ${req.originalUrl} on this server!`

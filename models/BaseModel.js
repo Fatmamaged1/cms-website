@@ -32,8 +32,7 @@ const baseSchema = new mongoose.Schema(
     // Common fields for all content types
     slug: {
       type: String,
-      required: true,
-      unique: true,
+      unique: false,
       trim: true,
       lowercase: true,
     },

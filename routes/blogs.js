@@ -8,47 +8,35 @@ const { handleUpload, fileService } = require('../services/upload');
 const { sendResponse } = require('../utils/response'); // ✅ NEW
 
 const router = express.Router();
-
-// ✅ Get all published blog posts
+// ✅ Get all blog posts with only the fields you want
 router.get('/', async (req, res, next) => {
   try {
-    const { page = 1, limit = 10, category, tag, search, language = 'en' } = req.query;
-    const skip = (page - 1) * limit;
+    const { category, tag, search, language = 'en' } = req.query;
 
-    const query = {
-      status: 'published',
-      language,
-      publishedAt: { $lte: new Date() }
-    };
+    const query = { language };
 
     if (category) query.categories = category;
     if (tag) query.tags = tag;
     if (search) query.$text = { $search: search };
 
-    const [posts, total] = await Promise.all([
-      withCache(
-        `blogs:${JSON.stringify(query)}:${page}:${limit}`,
-        () => Blog.find(query)
-          .select('-content -__v')
-          .populate('author', 'name avatar')
-          .populate('categories', 'name slug')
-          .sort({ publishedAt: -1 })
-          .skip(skip)
-          .limit(parseInt(limit))
-          .lean(),
-        3600
-      ),
-      Blog.countDocuments(query)
-    ]);
+    const posts = await withCache(
+      `blogs:all:${JSON.stringify(query)}`,
+      () => Blog.find(query)
+        .select('_id language isActive seo slug contentType title subtitle excerpt featuredImage status publishedAt createdAt updatedAt')
+        .sort({ createdAt: -1 })
+        .lean(),
+      3600
+    );
 
     sendResponse(res, {
-      message: 'Blog posts fetched successfully',
-      data: { posts, total }
+      message: 'All blog posts fetched successfully',
+      data: { posts, total: posts.length }
     });
   } catch (error) {
     next(error);
   }
 });
+
 
 // ✅ Get a single blog post by slug
 router.get('/:slug', async (req, res, next) => {
@@ -78,7 +66,7 @@ router.get('/:slug', async (req, res, next) => {
 });
 
 // ✅ Create a new blog post
-router.post('/', handleUpload('image'), async (req, res, next) => {
+router.post('/', handleUpload('featuredImage'), async (req, res, next) => {
   ['content', 'categories', 'tags'].forEach((field) => {
     if (typeof req.body[field] === 'string') {
       try {
@@ -133,7 +121,7 @@ router.post('/', handleUpload('image'), async (req, res, next) => {
 });
 
 // ✅ Update a blog post
-router.patch('/:id', handleUpload('image'), [
+router.patch('/:id', handleUpload('featuredImage'), [
   param('id').isMongoId().withMessage('Invalid post ID'),
   body('title').optional().trim().notEmpty(),
   body('excerpt').optional().trim().notEmpty(),
@@ -157,7 +145,7 @@ router.patch('/:id', handleUpload('image'), [
     if (req.file) {
       const currentPost = await Blog.findById(id).select('featuredImage');
       if (currentPost?.featuredImage) oldImageUrl = currentPost.featuredImage;
-      updateData.featuredImage = req.body.image;
+      updateData.featuredImage = req.body.featuredImage;
     }
 
     if (updateData.status === 'published' && !updateData.publishedAt) {
@@ -182,7 +170,7 @@ router.patch('/:id', handleUpload('image'), [
       data: post
     });
   } catch (error) {
-    if (req.file) await fileService.deleteFileByUrl(req.body.image);
+    if (req.file) await fileService.deleteFileByUrl(req.body.featuredImage);
     next(error);
   }
 });

@@ -63,10 +63,10 @@ router.get(
 
     const [services, total] = await Promise.all([
       Service.find(query)
+        .select('contentType title featuredImage content') // ✅ Only return these fields
         .sort({ order: 1, createdAt: -1 })
         .skip(skip)
         .limit(limit)
-        .populate('categories', 'name slug')
         .lean(),
       Service.countDocuments(query)
     ]);
@@ -88,6 +88,7 @@ router.get(
     });
   }
 );
+
 
 // Get service by slug
 router.get(

@@ -1,5 +1,6 @@
 const Career = require("../models/Career");
 const JobApplication = require("../models/JobApplication");
+const path = require("path");
 const slugify = require("slugify");
 
 // إنشاء وظيفة جديدة
@@ -19,22 +20,37 @@ exports.createCareer = async (req, res, next) => {
   }
 };
 
-// استرجاع جميع الوظائف مع فلاتر
 exports.getAllCareers = async (req, res, next) => {
   try {
-    const { search, status = 'published', page = 1, limit = 10 } = req.query;
+    const { search, status, page = 1, limit = 10 } = req.query;
     const skip = (page - 1) * limit;
 
     const filter = {};
-    if (search) {
-      filter.$text = { $search: search };
-    }
-    if (status) {
-      filter.status = status;
-    }
+    if (search) filter.$text = { $search: search };
+    if (status) filter.status = status;
+
+    const fieldsToSelect = [
+      "title",
+      "department",
+      "jobType",
+      "workType",
+      "location",
+      "createdAt",
+      "salary",
+      "seo",
+      "_id",
+      "language",
+      "isActive",
+      "slug",
+      "contentType"
+    ].join(" ");
 
     const [careers, total] = await Promise.all([
-      Career.find(filter).sort({ createdAt: -1 }).skip(skip).limit(Number(limit)),
+      Career.find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(Number(limit))
+        .select(fieldsToSelect), // حدد الحقول
       Career.countDocuments(filter),
     ]);
 
@@ -49,6 +65,7 @@ exports.getAllCareers = async (req, res, next) => {
     next(error);
   }
 };
+
 
 // عرض وظيفة واحدة حسب ID أو Slug
 exports.getCareerByIdOrSlug = async (req, res, next) => {
@@ -70,7 +87,6 @@ exports.getCareerByIdOrSlug = async (req, res, next) => {
     next(error);
   }
 };
-
 // تقديم طلب توظيف
 exports.applyToCareer = async (req, res, next) => {
   try {
@@ -95,38 +111,44 @@ exports.applyToCareer = async (req, res, next) => {
       message
     });
 
+    const job = await Career.findById(req.params.id).select("title location");
 
-    // جلب بيانات الوظيفة
-    const job = await Career.findById(req.params.id).select("title location slug");
-    
-    // بناء رابط للسيرة الذاتية
-    const resumeUrl = `${req.protocol}://${req.get("host")}/uploads/images/${path.basename(jobApplication.resume)}`;
-    
-    // إعادة الاستجابة المحسنة
+    const resumeUrl = `${req.protocol}://${req.get("host")}/uploads/images/${path.basename(application.resume)}`;
+
     res.status(201).json({
       success: true,
       message: "تم تقديم طلب التوظيف بنجاح",
       data: {
-        id: jobApplication._id,
-        fullName: jobApplication.fullName,
-        email: jobApplication.email,
-        phone: jobApplication.phone,
+        id: application._id,
+        fullName: application.fullName,
+        email: application.email,
+        phone: application.phone,
         resumeUrl,
-        status: jobApplication.status,
-        score: jobApplication.score,
-        matchingPercentage: jobApplication.matchingPercentage,
-        source: jobApplication.source,
-        createdAt: jobApplication.createdAt,
+        status: application.status,
+        score: application.score,
+        matchingPercentage: application.matchingPercentage,
+        source: application.source,
+        createdAt: application.createdAt,
         job: {
           id: job?._id,
           title: job?.title,
           location: job?.location,
-          slug: job?.slug,
-          url: `/careers/${job?.slug || job?._id}`
         }
       }
     });
   } catch (error) {
+    // تحقق من تكرار القيم
+    if (error.code === 11000) { // E11000 duplicate key error
+      return res.status(400).json({
+        success: false,
+        message: "لقد تقدمت لهذه الوظيفة بالفعل بهذا البريد الإلكتروني",
+        errors: Object.keys(error.keyValue).map(field => ({
+          field,
+          message: `هذا ${field} مستخدم بالفعل`,
+          value: error.keyValue[field]
+        }))
+      });
+    }
     next(error);
   }
 };

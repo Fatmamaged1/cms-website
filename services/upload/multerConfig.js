@@ -1,7 +1,7 @@
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const { v4: uuidv4 } = require('uuid');
+//const { v4: uuidv4 } = require('uuid');
 
 // Ensure upload directories exist
 const uploadDir = path.join(process.cwd(), 'public/uploads');
@@ -92,11 +92,12 @@ const handleUpload = (fieldName = 'image', type = 'image') => {
   
 
 // Multiple files upload
-const handleMultipleUploads = (fieldName, maxCount = 10, type = 'image') => {
-  const upload = type === 'image' 
-    ? uploadImage.array(fieldName, maxCount) 
-    : uploadFile.array(fieldName, maxCount);
-  
+// Multiple files upload with multiple field names
+const handleMultipleUploads = (fieldsArray, type = 'image') => {
+  const upload = type === 'image'
+    ? uploadImage.fields(fieldsArray)
+    : uploadFile.fields(fieldsArray);
+
   return (req, res, next) => {
     upload(req, res, (err) => {
       if (err) {
@@ -105,19 +106,22 @@ const handleMultipleUploads = (fieldName, maxCount = 10, type = 'image') => {
           message: err.message
         });
       }
-      
-      // If files were uploaded, update the request body with file paths
-      if (req.files && req.files.length) {
-        req.body[fieldName] = req.files.map(file => {
-          const filePath = file.path.replace(/\\/g, '/').replace('public', '');
-          return `${process.env.BASE_URL || 'http://localhost:3000'}${filePath}`;
-        });
+
+      // If files were uploaded, map them into body
+      if (req.files) {
+        for (const field in req.files) {
+          req.body[field] = req.files[field].map(file => {
+            const filePath = file.path.replace(/\\/g, '/').replace('public', '');
+            return `${process.env.BASE_URL || 'http://localhost:3000'}${filePath}`;
+          });
+        }
       }
-      
+
       next();
     });
   };
 };
+
 
 module.exports = {
   uploadImage,
