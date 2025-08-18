@@ -38,8 +38,17 @@ const DEFAULT_HOME_STRUCTURE = {
       subtitle: 'What We Offer',
       featuredServices: []
     },
-    clients: {
-      logos: []
+    //SAMPLEDATA 
+    clients:[
+      {
+      name: 'Clients',
+      logo: '/images/clients.jpg',
+      }
+    ],
+    blog: {
+      title: 'Our Blog',
+      subtitle: 'Latest News and Updates',
+      featuredBlogs: []
     },
     features: []
   }
@@ -50,10 +59,13 @@ class PageService {
   // ------------------ GET HOME PAGE ------------------
   static async getHomePage(language) {
     let homePage = await PageContent.findOne({ pageType: 'home', language })
-      .populate({
-        path: 'sections.services.featuredServices',
-        model: 'Service'
-      });
+      .populate('sections.blog.featuredBlogs')
+      .populate('sections.services.featuredServices');
+    
+  
+    
+   // console.log(homePage.sections.blog.title); // يجيب العنوان
+    
 
     if (!homePage) {
       homePage = await PageContent.create({
@@ -72,8 +84,9 @@ return {
   sections: {
     hero: homePage.sections?.hero || DEFAULT_HOME_STRUCTURE.sections.hero,
     about, // now coming from AboutService
+    blog: homePage.sections?.blog || DEFAULT_HOME_STRUCTURE.sections.blog,
     services: homePage.sections?.services || DEFAULT_HOME_STRUCTURE.sections.services,
-    clients: homePage.sections?.clients || DEFAULT_HOME_STRUCTURE.sections.clients,
+    clients: DEFAULT_HOME_STRUCTURE.sections.clients,
     features: homePage.sections?.features || DEFAULT_HOME_STRUCTURE.sections.features
   }
 };

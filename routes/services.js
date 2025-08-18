@@ -111,7 +111,9 @@ router.get(
     .populate('relatedServices', 'title slug excerpt thumbnail')
     .lean();
 
-    if (!service) {
+    if (!service) 
+      {
+      console.log('Service not found 1');
       throw new NotFoundError('Service not found');
     }
 
@@ -210,6 +212,7 @@ router.put(
       // Get the existing service to handle image cleanup if needed
       const existingService = await Service.findById(id);
       if (!existingService) {
+        console.log('Service not found 2');
         throw new NotFoundError('Service not found');
       }
       
@@ -278,6 +281,7 @@ router.delete(
       const service = await Service.findById(id);
       
       if (!service) {
+        console.log('Service not found 3');
         throw new NotFoundError('Service not found');
       }
       

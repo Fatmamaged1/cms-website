@@ -2,14 +2,14 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const helmet = require('helmet');
+//const helmet = require('helmet');
 const morgan = require('morgan');
 const compression = require('compression');
 const path = require('path');
 const rateLimit = require('express-rate-limit');
 const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
-const hpp = require('hpp');
+//const hpp = require('hpp');
 const cookieParser = require('cookie-parser');
 
 // Import routes
@@ -25,14 +25,12 @@ const { errorHandler } = require('./utils/errors');
 const app = express();
 
 // Set security HTTP headers
-app.use(helmet());
+//app.use(helmet());
 
-// Enable CORS
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? process.env.CLIENT_URL 
-    : 'http://localhost:3000',
-  credentials: true
+  origin: true, // كل المواقع مسموح لها
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], // حددت طرق الطلب
+  credentials: true // إذا كنت تستخدم الكوكيز أو التوكن
 }));
 
 // Development logging
@@ -59,11 +57,11 @@ app.use(mongoSanitize());
 app.use(xss());
 
 // Prevent parameter pollution (must come before routes)
-app.use(hpp({
-  whitelist: [
-    'duration', 'ratingsQuantity', 'ratingsAverage', 'maxGroupSize', 'difficulty', 'price'
-  ]
-}));
+//app.use(hpp({
+//  whitelist: [
+//    'duration', 'ratingsQuantity', 'ratingsAverage', 'maxGroupSize', 'difficulty', 'price'
+//  ]
+//}));
 
 // Cookie parser
 app.use(cookieParser());

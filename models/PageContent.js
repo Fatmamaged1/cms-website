@@ -65,14 +65,20 @@ const pageContentSchema = new mongoose.Schema({
         ref: 'Service'
       }]
     },
-    clients: {
+    blog: {
       title: String,
-      logos: [{
-        image: String,
-        name: String,
-        url: String
+      subtitle: String,
+      featuredBlogs: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Blog'
       }]
     },
+
+
+    clients: [{
+      name: String,
+      logo: String,
+    }],
     // Add more sections as needed
   },
   

@@ -89,6 +89,7 @@ router.post('/', handleUpload('featuredImage'), async (req, res, next) => {
 
   try {
     const errors = validationResult(req);
+    console.log(errors.array());
     if (!errors.isEmpty()) {
       if (req.file) await fileService.deleteFileByUrl(req.body.image);
       return next(new BadRequestError('Validation failed', 400, errors.array()));
@@ -134,6 +135,7 @@ router.patch('/:id', handleUpload('featuredImage'), [
   let oldImageUrl = null;
   try {
     const errors = validationResult(req);
+    console.log(errors.array());
     if (!errors.isEmpty()) {
       if (req.file) await fileService.deleteFileByUrl(req.body.image);
       return next(new BadRequestError('Validation failed', 400, errors.array()));
