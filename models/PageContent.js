@@ -73,13 +73,10 @@ const pageContentSchema = new mongoose.Schema({
         ref: 'Blog'
       }]
     },
-
-
     clients: [{
       name: String,
       logo: String,
     }],
-    // Add more sections as needed
   },
   
   // Full page content (as blocks)
