@@ -20,6 +20,8 @@ const careerRoutes = require('./routes/careers');
 const contactRoutes = require('./routes/contact');
 const aboutRoutes = require('./routes/about');
 const { errorHandler } = require('./utils/errors');
+const authRoutes = require("./routes/auth");
+
 
 // Initialize express app
 const app = express();
@@ -101,6 +103,8 @@ app.use('/api/v1/blogs', blogRoutes);
 app.use('/api/v1/careers', careerRoutes);
 app.use('/api/v1/about', aboutRoutes);
 app.use('/api/v1/contact', contactRoutes);
+app.use("/api/auth", authRoutes);
+
 // Serve uploads folder statically
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 // Serve static assets in production
