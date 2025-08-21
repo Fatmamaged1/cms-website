@@ -84,9 +84,7 @@ process.on('unhandledRejection', (err) => {
   console.error('UNHANDLED REJECTION! 💥 Shutting down...');
   console.error(err.name, err.message);
   // Close server & exit process
-  server.close(() => {
-    process.exit(1);
-  });
+  
 });
 
 process.on('SIGTERM', () => {
@@ -103,7 +101,7 @@ app.use('/api/v1/blogs', blogRoutes);
 app.use('/api/v1/careers', careerRoutes);
 app.use('/api/v1/about', aboutRoutes);
 app.use('/api/v1/contact', contactRoutes);
-app.use("/api/auth", authRoutes);
+app.use("/api/v1/auth", authRoutes);
 
 // Serve uploads folder statically
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
