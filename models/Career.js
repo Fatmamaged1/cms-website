@@ -88,14 +88,14 @@ const careerSchema = new mongoose.Schema({
     },
     currency: {
       type: String,
-      default: 'USD',
+      default: 'SAR',
       uppercase: true,
-      enum: ['USD', 'EUR', 'GBP', 'JPY', 'AUD', 'CAD']
+      enum: ['USD', 'AED', 'EGP', 'SAR']
     },
     period: {
       type: String,
       enum: ['hour', 'day', 'week', 'month', 'year'],
-      default: 'year'
+      default: 'month'
     },
     isNegotiable: {
       type: Boolean,
