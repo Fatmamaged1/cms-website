@@ -27,7 +27,6 @@ router.post(
     //     throw new BadRequestError('reCAPTCHA verification failed');
     //   }
     // }
-
     // Check for potential spam
     const recentSubmissions = await ContactSubmission.countDocuments({
       $or: [

@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const careerController = require("../controllers/career.controller");
+const careerController = require("../controllers/careerController");
 const { handleUpload } = require("../services/upload");
 
 // ============================

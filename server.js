@@ -19,6 +19,8 @@ const blogRoutes = require('./routes/blogs');
 const careerRoutes = require('./routes/careers');
 const contactRoutes = require('./routes/contact');
 const aboutRoutes = require('./routes/about');
+const clientRoutes = require('./routes/clients');
+const partnerRoutes = require('./routes/partners');
 const { errorHandler } = require('./utils/errors');
 const authRoutes = require("./routes/auth");
 
@@ -49,7 +51,7 @@ const limiter = rateLimit({
 app.use('/api', limiter);
 
 // Body parser, reading data from body into req.body with size limit
-app.use(express.json({ limit: '10kb' }));
+app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
 // Data sanitization against NoSQL query injection
@@ -102,6 +104,8 @@ app.use('/api/v1/careers', careerRoutes);
 app.use('/api/v1/about', aboutRoutes);
 app.use('/api/v1/contact', contactRoutes);
 app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/partners", partnerRoutes);
+app.use("/api/v1/clients", clientRoutes);
 
 // Serve uploads folder statically
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
