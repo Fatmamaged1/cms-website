@@ -160,7 +160,7 @@ exports.updateCareer = async (req, res, next) => {
     if (!career) {
       return res.status(404).json({ success: false, message: "الوظيفة غير موجودة" });
     }
-    return res.json({ success: true, data: career });
+    return res.json({ success: true,message: "تم تحديث الوظيفة بنجاح", data: career });
   } catch (error) {
     next(error);
   }
@@ -173,7 +173,7 @@ exports.deleteCareer = async (req, res, next) => {
     if (!career) {
       return res.status(404).json({ success: false, message: "الوظيفة غير موجودة" });
     }
-    return res.json({ success: true, data: career });
+    return res.json({ success: true,message: "تم حذف الوظيفة بنجاح" });
   } catch (error) {
     next(error);
   }

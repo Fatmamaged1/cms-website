@@ -7,7 +7,7 @@ const Service = require('../models/Service');
 const { NotFoundError, BadRequestError } = require('../utils/errors');
 const { handleUpload, fileService } = require('../services/upload');
 const { processContentUploads, cleanupOrphanedFiles } = require('../middleware/contentUpload');
-
+const Partner = require('../models/Partner');
 // Middleware to set language
 const setLanguage = (req, res, next) => {
   req.language = req.query.lang || req.acceptsLanguages(['en', 'ar']) || 'en';
@@ -63,7 +63,6 @@ router.get(
 
     const [services, total] = await Promise.all([
       Service.find(query)
-        .select('contentType title featuredImage content slug') // ✅ Only return these fields
         .sort({ order: 1, createdAt: -1 })
         .skip(skip)
         .limit(limit)
@@ -260,7 +259,45 @@ router.put(
     }
   }
 );
-
+router.post(
+    '/:serviceId/partners/:partnerId',
+    validateRequest,
+    async (req, res, next) => {
+      try {
+        const { serviceId, partnerId } = req.params;
+        const service = await addPartnersToService(serviceId, partnerId);
+        if (!service) {
+          throw new NotFoundError('Service not found');
+        }
+        res.json({
+          success: true,
+          data: service
+        });
+      } catch (error) {
+        next(error);
+      }
+    }
+  );
+async function addPartnersToService(serviceId, partnerId) {
+    try {
+      const partner = await Partner.findById(partnerId);
+      if (!partner) {
+        throw new NotFoundError('Partner not found');
+      }
+      const service = await Service.findById(serviceId);
+      if (!service) {
+        throw new NotFoundError('Service not found');
+      }
+      service.partners.push(partnerId);
+      await service.save();
+      partner.services.push(serviceId);
+      await partner.save();
+      return service;
+    } catch (error) {
+      console.error('Error adding partner to service:', error);
+      return null;
+    }
+  }
 // Delete a service (admin only)
 router.delete(
   '/:id',
