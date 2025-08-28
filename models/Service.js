@@ -62,6 +62,10 @@ const serviceSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Category'
   }],
+  partners:[{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Partner'
+  }],
   tags: [{
     type: String,
     trim: true

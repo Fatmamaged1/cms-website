@@ -27,4 +27,14 @@ router.post(
   careerController.applyToCareer
 );
 
+// ============================
+// 🔹 PUT: تحديث وظيفة
+// ============================
+router.put("/:id", handleUpload("resume"), careerController.updateCareer);
+
+// ============================
+// 🔹 DELETE: حذف وظيفة
+// ============================
+router.delete("/:id", careerController.deleteCareer);
+
 module.exports = router;

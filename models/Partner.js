@@ -36,6 +36,6 @@ const partnerSchema = new mongoose.Schema({
       }],    
 })
 partnerSchema.index({ slug: 1, name: 1 ,required: true}, { unique: true });
+module.exports = mongoose.model('Partner', partnerSchema);
 
-exports.Partner = mongoose.model('Partner', partnerSchema);
 
