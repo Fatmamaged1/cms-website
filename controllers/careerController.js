@@ -1,6 +1,7 @@
 const Career = require("../models/Career");
 const JobApplication = require("../models/JobApplication");
 const path = require("path");
+const mongoose = require("mongoose");
 const slugify = require("slugify");
 
 // إنشاء وظيفة جديدة
@@ -153,18 +154,71 @@ exports.applyToCareer = async (req, res, next) => {
   }
 };
 //update career
+// تحديث وظيفة
 exports.updateCareer = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const career = await Career.findByIdAndUpdate(id, req.body, { new: true });
-    if (!career) {
-      return res.status(404).json({ success: false, message: "الوظيفة غير موجودة" });
+
+    // ✅ slug update
+    if (req.body.title) {
+      req.body.slug = slugify(req.body.title, { lower: true });
     }
-    return res.json({ success: true,message: "تم تحديث الوظيفة بنجاح", data: career });
+
+    // ✅ deadline update
+    if (req.body.applicationDeadline) {
+      req.body.applicationDeadline = new Date(req.body.applicationDeadline);
+    }
+
+    // ✅ description check (string OR EditorJS object)
+    if (req.body.description) {
+      if (typeof req.body.description === "string") {
+        // لو نص → نحوله لشكل EditorJS block
+        req.body.description = {
+          time: Date.now(),
+          version: "2.27.0",
+          blocks: [
+            {
+              id: new mongoose.Types.ObjectId().toString(),
+              type: "paragraph",
+              data: { text: req.body.description }
+            }
+          ]
+        };
+      } else if (typeof req.body.description === "object") {
+        // لو JSON → تأكد إن فيه structure EditorJS
+        req.body.description = {
+          time: req.body.description.time || Date.now(),
+          version: req.body.description.version || "2.27.0",
+          blocks: req.body.description.blocks || []
+        };
+      }
+    }
+
+    // ✅ تحديث الوظيفة
+    const career = await Career.findByIdAndUpdate(id, req.body, {
+      new: true,
+      runValidators: true
+    });
+
+    if (!career) {
+      return res.status(404).json({
+        success: false,
+        message: "الوظيفة غير موجودة"
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: "تم تحديث الوظيفة بنجاح",
+      data: career
+    });
   } catch (error) {
     next(error);
   }
 };
+
+
+
 
 exports.deleteCareer = async (req, res, next) => {
   try {

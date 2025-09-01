@@ -83,6 +83,7 @@ mongoose
   });
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {
+  console.log(err);
   console.error('UNHANDLED REJECTION! 💥 Shutting down...');
   console.error(err.name, err.message);
   // Close server & exit process
