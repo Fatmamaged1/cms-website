@@ -73,12 +73,12 @@ const careerSchema = new mongoose.Schema({
   salary: {
     min: {
       type: Number,
-      required: function() { return this.salary && this.salary.max !== undefined; },
+      required: false,
       min: 0
     },
     max: {
       type: Number,
-      required: function() { return this.salary && this.salary.min !== undefined; },
+      required: false,
       validate: {
         validator: function(v) {
           return v >= this.salary.min;
