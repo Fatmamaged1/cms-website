@@ -80,7 +80,7 @@ router.post('/', handleUpload('featuredImage'), async (req, res, next) => {
   await Promise.all([
     body('title').trim().notEmpty().withMessage('Title is required').run(req),
     body('excerpt').trim().notEmpty().withMessage('Excerpt is required').run(req),
-    body('content').isObject().withMessage('Content must be an object').run(req),
+    body('content').isString().withMessage('Content must be a text').run(req),
     body('status').isIn(['draft', 'published']).withMessage('Invalid status').run(req),
     body('language').isIn(['en', 'ar']).withMessage('Invalid language code').run(req),
     body('categories').optional().isArray().withMessage('Categories must be an array').run(req),
@@ -126,7 +126,7 @@ router.patch('/:id', handleUpload('featuredImage'), [
   param('id').isMongoId().withMessage('Invalid post ID'),
   body('title').optional().trim().notEmpty(),
   body('excerpt').optional().trim().notEmpty(),
-  body('content').optional().isObject(),
+  body('content').optional().isString(),
   body('categories').optional().isArray(),
   body('tags').optional().isArray(),
   body('status').optional().isIn(['draft', 'published']),

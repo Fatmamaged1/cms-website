@@ -23,7 +23,6 @@ const pageContentSchema = new mongoose.Schema({
     about: {
       title: String,
       subtitle: String,
-    
       content: String,
       features: [{
         type: mongoose.Schema.Types.ObjectId,
