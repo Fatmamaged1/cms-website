@@ -169,32 +169,6 @@ exports.updateCareer = async (req, res, next) => {
     if (req.body.applicationDeadline) {
       req.body.applicationDeadline = new Date(req.body.applicationDeadline);
     }
-
-    // ✅ description check (string OR EditorJS object)
-    if (req.body.description) {
-      if (typeof req.body.description === "string") {
-        // لو نص → نحوله لشكل EditorJS block
-        req.body.description = {
-          time: Date.now(),
-          version: "2.27.0",
-          blocks: [
-            {
-              id: new mongoose.Types.ObjectId().toString(),
-              type: "paragraph",
-              data: { text: req.body.description }
-            }
-          ]
-        };
-      } else if (typeof req.body.description === "object") {
-        // لو JSON → تأكد إن فيه structure EditorJS
-        req.body.description = {
-          time: req.body.description.time || Date.now(),
-          version: req.body.description.version || "2.27.0",
-          blocks: req.body.description.blocks || []
-        };
-      }
-    }
-
     // ✅ تحديث الوظيفة
     const career = await Career.findByIdAndUpdate(id, req.body, {
       new: true,

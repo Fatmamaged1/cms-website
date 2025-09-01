@@ -194,7 +194,7 @@ router.put(
     param('id').isMongoId(),
     body('title').optional().isString().trim().notEmpty(),
     body('description').optional().isString(),
-    body('content').optional().isObject(),
+    body('content').optional().isString(),
     body('categories').optional().isArray(),
     body('tags').optional().isArray(),
     body('featured').optional().isBoolean(),
