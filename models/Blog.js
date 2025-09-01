@@ -1,17 +1,6 @@
 const mongoose = require('mongoose');
 const BaseModel = require('./BaseModel');
 
-// Reuse the block content schema
-const blockContentSchema = new mongoose.Schema({
-  time: { type: Number, default: Date.now },
-  version: { type: String, default: '2.27.0' },
-  blocks: [{
-    type: { type: String, required: true },
-    data: { type: mongoose.Schema.Types.Mixed, required: true },
-    id: String,
-    tunes: mongoose.Schema.Types.Mixed
-  }]
-}, { _id: false });
 
 const blogSchema = new mongoose.Schema({
   // Blog post details
@@ -41,10 +30,7 @@ const blogSchema = new mongoose.Schema({
   },
   
   // Main content as blocks
-  content: blockContentSchema,
-  
- 
-  
+  content: String,
   // Publication status
   status: {
     type: String,
@@ -93,7 +79,7 @@ blogSchema.index({
   title: 'text',
   subtitle: 'text',
   excerpt: 'text',
-  'content.blocks.data.text': 'text',
+  content: 'text',
   'seo.metaTitle': 'text',
   'seo.metaDescription': 'text',
   'seo.metaKeywords': 'text',

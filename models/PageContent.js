@@ -1,18 +1,6 @@
 const mongoose = require('mongoose');
 const BaseModel = require('./BaseModel');
 
-// Define the block content schema
-const blockContentSchema = new mongoose.Schema({
-  time: { type: Number, default: Date.now },
-  version: { type: String, default: '2.27.0' },
-  blocks: [{
-    type: { type: String, required: true },
-    data: { type: mongoose.Schema.Types.Mixed, required: true },
-    id: String,
-    tunes: mongoose.Schema.Types.Mixed
-  }]
-}, { _id: false });
-
 // Page content schema
 const pageContentSchema = new mongoose.Schema({
   // Page identifier (home, about, contact, etc.)
@@ -36,7 +24,7 @@ const pageContentSchema = new mongoose.Schema({
       title: String,
       subtitle: String,
     
-      content: blockContentSchema,
+      content: String,
       features: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Feature'
@@ -50,7 +38,7 @@ const pageContentSchema = new mongoose.Schema({
       title: String,
       subtitle: String,
       icon: String,
-      content: blockContentSchema,
+      content: String,
       image: String,
       video: String,
       order: { type: Number, default: 0 }
@@ -80,7 +68,7 @@ const pageContentSchema = new mongoose.Schema({
   },
   
   // Full page content (as blocks)
-  content: blockContentSchema,
+  content: String,
   
   // SEO specific to this page
   seo: {

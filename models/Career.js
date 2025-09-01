@@ -2,17 +2,6 @@ const mongoose = require('mongoose');
 const slugify = require('slugify');
 const BaseModel = require('./BaseModel');
 
-// Reuse the block content schema
-const blockContentSchema = new mongoose.Schema({
-  time: { type: Number, default: Date.now },
-  version: { type: String, default: '2.27.0' },
-  blocks: [{
-    type: { type: String, required: true },
-    data: { type: mongoose.Schema.Types.Mixed, required: true },
-    id: String,
-    tunes: mongoose.Schema.Types.Mixed
-  }]
-}, { _id: false });
 
 const careerSchema = new mongoose.Schema({
   // Job details
@@ -108,10 +97,10 @@ const careerSchema = new mongoose.Schema({
   },
   
   // Job description and requirements
-  description: blockContentSchema,
-  requirements: blockContentSchema,
-  responsibilities: blockContentSchema,
-  benefits: blockContentSchema,
+  description: String,
+  requirements: String,
+  responsibilities: String,
+  benefits: String,
   
   // Application details
   applicationDeadline: {
