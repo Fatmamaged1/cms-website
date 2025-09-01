@@ -1,17 +1,6 @@
 const mongoose = require('mongoose');
 const BaseModel = require('./BaseModel');
 
-// Define the block content schema (same as in PageContent)
-const blockContentSchema = new mongoose.Schema({
-  time: { type: Number, default: Date.now },
-  version: { type: String, default: '2.27.0' },
-  blocks: [{
-    type: { type: String, required: true },
-    data: { type: mongoose.Schema.Types.Mixed, required: true },
-    id: String,
-    tunes: mongoose.Schema.Types.Mixed
-  }]
-}, { _id: false });
 
 const serviceSchema = new mongoose.Schema({
   // Service details
@@ -45,7 +34,7 @@ const serviceSchema = new mongoose.Schema({
   },
   
   // Main content as blocks
-  content: blockContentSchema,
+  content: String,
   
   // Additional fields
   order: {
@@ -86,6 +75,7 @@ serviceSchema.index({
   title: 'text',
   subtitle: 'text',
   excerpt: 'text',
+  content: 'text',
   'seo.metaTitle': 'text',
   'seo.metaDescription': 'text',
   'seo.metaKeywords': 'text',

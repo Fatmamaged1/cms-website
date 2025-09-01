@@ -16,7 +16,7 @@ const fileDir = path.join(uploadDir, 'files');
 
 // File filter for images
 const imageFileFilter = (req, file, cb) => {
-  const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp' , 'image/jpg'];
   if (allowedTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
@@ -82,7 +82,7 @@ const handleUpload = (fieldName = 'image', type = 'image') => {
   
         if (req.file) {
           const filePath = req.file.path.replace(/\\/g, '/').replace('public', '');
-          req.body[fieldName] = `${process.env.BASE_URL || 'http://localhost:3000'}${filePath}`;
+          req.body[fieldName] = `${process.env.BASE_URL || `${req.protocol}://${req.get('host')}/`}${filePath}`;
         }
   
         next();
@@ -112,7 +112,7 @@ const handleMultipleUploads = (fieldsArray, type = 'image') => {
         for (const field in req.files) {
           req.body[field] = req.files[field].map(file => {
             const filePath = file.path.replace(/\\/g, '/').replace('public', '');
-            return `${process.env.BASE_URL || 'http://localhost:3000'}${filePath}`;
+            return `${process.env.BASE_URL || `${req.protocol}://${req.get('host')}/`}${filePath}`;
           });
         }
       }
