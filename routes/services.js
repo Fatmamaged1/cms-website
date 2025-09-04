@@ -131,15 +131,15 @@ router.get(
 router.post(
     '/',
     handleUpload('featuredImage'), // رفع صورة مميزة
-    processContentUploads, // معالجة ملفات داخل content
+   // processContentUploads, // معالجة ملفات داخل content
     [
       body('title').trim().notEmpty().withMessage('Title is required'),
-      body('description').optional().isString(),
-      body('content').optional(),
-      body('categories').optional(),
-      body('tags').optional(),
-      body('featured').optional().isBoolean(),
-      body('seo').optional(),
+      body('description').optional().isString().withMessage('Description is required'),
+      body('content').optional().isString().withMessage('Content is required'),
+      body('categories').optional().isArray().withMessage('Categories must be an array'),
+      body('tags').optional().isArray().withMessage('Tags must be an array'),
+      body('featured').optional().isBoolean().withMessage('Featured must be a boolean'),
+      body('seo').optional().isObject().withMessage('SEO must be an object'),
       setLanguage
     ],
     validateRequest,
@@ -148,16 +148,15 @@ router.post(
         const userId = req.user?.id; // إذا كنت تحتاج ربط الخدمة بالمستخدم
         
         // ✅ معالجة البيانات القادمة كسلاسل JSON (لأنها من form-data)
-        const parsedContent = req.body.content ? JSON.parse(req.body.content) : null;
+        // const parsedContent = req.body.content ? req.body.content : '';
         const parsedCategories = req.body.categories ? JSON.parse(req.body.categories) : [];
         const parsedTags = req.body.tags ? JSON.parse(req.body.tags) : [];
         const parsedSeo = req.body.seo ? JSON.parse(req.body.seo) : null;
-  
         const serviceData = {
           title: req.body.title,
           description: req.body.description,
           slug: req.body.slug || req.body.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
-          content: parsedContent,
+          content: req.body.content,
           categories: parsedCategories,
           tags: parsedTags,
           seo: parsedSeo,
@@ -191,16 +190,16 @@ router.put(
   handleUpload('featuredImage'), // Handle featured image upload
   processContentUploads, // Process any file uploads in content blocks
   [
-    param('id').isMongoId(),
-    body('title').optional().isString().trim().notEmpty(),
-    body('description').optional().isString(),
-    body('content').optional().isString(),
-    body('categories').optional().isArray(),
-    body('tags').optional().isArray(),
-    body('featured').optional().isBoolean(),
-    body('seo').optional().isObject(),
-    body('language').optional().isIn(['en', 'ar']),
-    body('isActive').optional().isBoolean()
+    param('id').isMongoId().withMessage('Invalid service ID'),
+    body('title').optional().isString().trim().notEmpty().withMessage('Title is required'),
+    body('description').optional().isString().withMessage('Description is required'),
+    body('content').optional().isString().withMessage('Content is required'),
+    body('categories').optional().isArray().withMessage('Categories must be an array'),
+    body('tags').optional().isArray().withMessage('Tags must be an array'),
+    body('featured').optional().isBoolean().withMessage('Featured must be a boolean'),
+    body('seo').optional().isObject().withMessage('SEO must be an object'),
+    body('language').optional().isIn(['en', 'ar']).withMessage('Language must be en or ar'),
+    body('isActive').optional().isBoolean().withMessage('Active status must be a boolean')
   ],
   validateRequest,
   async (req, res, next) => {
