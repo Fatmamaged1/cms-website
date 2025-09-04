@@ -4,9 +4,9 @@ const fs = require('fs');
 //const { v4: uuidv4 } = require('uuid');
 
 // Ensure upload directories exist
-const uploadDir = path.join(process.cwd(), 'public/uploads');
-const imageDir = path.join(uploadDir, 'images');
-const fileDir = path.join(uploadDir, 'files');
+const uploadDir = path.join(process.cwd(), 'public/uploads/');
+const imageDir = path.join(uploadDir, 'images/');
+const fileDir = path.join(uploadDir, 'files/');
 
 [uploadDir, imageDir, fileDir].forEach(dir => {
   if (!fs.existsSync(dir)) {
@@ -80,10 +80,22 @@ const handleUpload = (fieldName = 'image', type = 'image') => {
           return res.status(400).json({ success: false, message: err.message });
         }
   
+       
         if (req.file) {
-          const filePath = req.file.path.replace(/\\/g, '/').replace('public', '');
-          req.body[fieldName] = `${process.env.BASE_URL || `${req.protocol}://${req.get('host')}/`}${filePath}`;
-        }
+          // Use path.relative() to get the path relative to the public directory
+          let relativePath;
+          if(type === 'image'){
+          relativePath = path.relative(path.join(process.cwd(), 'public/'),"uploads/images/"+ req.file.filename);
+          }
+          else{
+            relativePath = path.relative(path.join(process.cwd(), 'public/'), "uploads/files/"+ req.file.filename);
+          }
+          // Construct the full URL using the relative path
+          const fileUrl = `${process.env.BASE_URL || `${req.protocol}://${req.get('host')}/`}${relativePath.replace(/\\/g, '/')}`;
+
+          // Assign the final URL to the request body
+          req.body[fieldName] = fileUrl;
+      }
   
         next();
       });
@@ -111,8 +123,14 @@ const handleMultipleUploads = (fieldsArray, type = 'image') => {
       if (req.files) {
         for (const field in req.files) {
           req.body[field] = req.files[field].map(file => {
-            const filePath = file.path.replace(/\\/g, '/').replace('public', '');
-            return `${process.env.BASE_URL || `${req.protocol}://${req.get('host')}/`}${filePath}`;
+            let relativePath;
+            if(type === 'image'){
+            relativePath = path.relative(path.join(process.cwd(), 'public/'),"uploads/images/"+ file.filename);
+            }
+            else{
+              relativePath = path.relative(path.join(process.cwd(), 'public/'), "uploads/files/"+ file.filename);
+            }
+            return `${process.env.BASE_URL || `${req.protocol}://${req.get('host')}/`}${relativePath.replace(/\\/g, '/')}`;
           });
         }
       }

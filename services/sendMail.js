@@ -5,15 +5,18 @@ exports.sendConfirmationEmail = async function sendConfirmationEmail(recipientEm
   // Create a transporter object using Nodemailer
   const transporter = nodemailer.createTransport({
     service: 'gmail',
+
     auth: {
-      user: 'abdelrahmanmarakby@gmail.com', // Replace with your Gmail address
-      pass: 'Seaways7!' // Replace with your App Password
+      // TODO: Replace with your Gmail address and App Password
+      user: '', // Replace with your Gmail address
+      pass: '' // Replace with your App Password
     }
   });
 
   // Set up the email options
+  // TODO: Replace with your Gmail address and App Password
   const mailOptions = {
-    from: 'abdelrahmanmarakby@gmail.com',
+    from: '',
     to: recipientEmail,
     subject: 'PREMED - Thank you for contacting us',
     html: `

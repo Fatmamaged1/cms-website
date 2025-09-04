@@ -54,7 +54,7 @@ router.post(
     });
 
     await submission.save();
-    await sendConfirmationEmail(email);
+    // await sendConfirmationEmail(email);
     res.status(201).json({
       status: 'success',
       message: 'Thank you for contacting us. We will get back to you soon!',
