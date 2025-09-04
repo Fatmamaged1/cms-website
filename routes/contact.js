@@ -4,6 +4,7 @@ const { body } = require('express-validator');
 const { validateRequest } = require('../middleware/validation');
 const ContactSubmission = require('../models/ContactSubmission');
 const { BadRequestError } = require('../utils/errors');
+const { sendConfirmationEmail } = require('../services/sendMail');
 
 // Submit contact form
 router.post(
@@ -53,12 +54,7 @@ router.post(
     });
 
     await submission.save();
-
-    // In a real app, you would:
-    // 1. Send a confirmation email to the user
-    // 2. Send a notification to the admin
-    // 3. Possibly integrate with a CRM or support system
-
+    await sendConfirmationEmail(email);
     res.status(201).json({
       status: 'success',
       message: 'Thank you for contacting us. We will get back to you soon!',
