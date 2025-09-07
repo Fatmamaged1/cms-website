@@ -49,19 +49,28 @@ exports.getAllCareers = async (req, res, next) => {
 
     const [careers, total] = await Promise.all([
       Career.find(filter)
+
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(Number(limit))
         .select(fieldsToSelect), // حدد الحقول
       Career.countDocuments(filter),
     ]);
+const enhancedCareers = careers.map(career => {
+      const data = career.toObject();
 
+      // رابط كامل
+      data.url = `${process.env.BASE_URL || `${req.protocol}://${req.get("host")}`}${data.url}`;
+
+      return data;
+    });
+    
     return res.json({
       success: true,
       total,
       currentPage: Number(page),
       pages: Math.ceil(total / limit),
-      data: careers,
+      data: enhancedCareers,
     });
   } catch (error) {
     next(error);
