@@ -111,9 +111,10 @@ app.use("/api/v1/clients", clientRoutes);
 // Serve uploads folder statically
 // القديم (direct in uploads/)
 // القديم (direct in uploads/)
-app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
+// يدعم القديم
+app.use('/', express.static(path.join(__dirname, 'public/uploads')));
 
-// الجديد (منظم)
+// يدعم الجديد المنظم
 app.use('/uploads/images', express.static(path.join(__dirname, 'public/uploads/images')));
 app.use('/uploads/files', express.static(path.join(__dirname, 'public/uploads/files')));
 
