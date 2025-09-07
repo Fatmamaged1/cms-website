@@ -117,6 +117,7 @@ app.use("/api/v1/clients", clientRoutes);
 // سيعرض كل الملفات داخل uploads/images مباشرة من جذر السيرفر
 app.use(express.static(path.join(__dirname, 'public/uploads/images')));
 
+
 // Serve static assets in production
 if (process.env.NODE_ENV === 'production') {
   // Set static folder

@@ -60,11 +60,11 @@ const enhancedCareers = careers.map(career => {
       const data = career.toObject();
 
       // رابط كامل
-      data.url = `${process.env.BASE_URL || `${req.protocol}://${req.get("host")}`}${data.url}`;
+      data.url = `${req.protocol}://${req.get("host")}/uploads/images/${path.basename(application.resume)}`;
 
       return data;
     });
-    
+
     return res.json({
       success: true,
       total,
