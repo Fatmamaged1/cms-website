@@ -113,10 +113,7 @@ app.use("/api/v1/clients", clientRoutes);
 // القديم (direct in uploads/)
 // يدعم القديم
 // دعم الصور القديمة مباشرة
-app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
-
-
-// يدعم الجديد المنظم
+// يدعم القديم والجديد
 app.use('/uploads/images', express.static(path.join(__dirname, 'public/uploads/images')));
 app.use('/uploads/files', express.static(path.join(__dirname, 'public/uploads/files')));
 
