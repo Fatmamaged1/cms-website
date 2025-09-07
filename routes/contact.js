@@ -3,7 +3,7 @@ const router = express.Router();
 const { body } = require('express-validator');
 const { validateRequest } = require('../middleware/validation');
 const ContactSubmission = require('../models/ContactSubmission');
-const { BadRequestError } = require('../utils/errors');
+const { BadRequestError, NotFoundError } = require('../utils/errors');
 const { sendConfirmationEmail } = require('../services/sendMail');
 
 // Submit contact form
@@ -15,46 +15,35 @@ router.post(
     body('phone').optional().isString().trim(),
     body('subject').isString().trim().notEmpty().withMessage('Subject is required'),
     body('message').isString().trim().notEmpty().withMessage('Message is required'),
-    body('recaptchaToken').optional().isString().trim() // For reCAPTCHA validation
+    body('recaptchaToken').optional().isString().trim()
   ],
   validateRequest,
   async (req, res) => {
-    const { name, email, phone, subject, message, recaptchaToken } = req.body;
+    const { name, email, phone, subject, message } = req.body;
 
-    // In a real app, you would verify the reCAPTCHA token here
-    // if (process.env.NODE_ENV === 'production') {
-    //   const isHuman = await verifyRecaptcha(recaptchaToken);
-    //   if (!isHuman) {
-    //     throw new BadRequestError('reCAPTCHA verification failed');
-    //   }
-    // }
-    // Check for potential spam
+    // Check for spam / rate limiting
     const recentSubmissions = await ContactSubmission.countDocuments({
       $or: [
-        { email, createdAt: { $gt: new Date(Date.now() - 24 * 60 * 60 * 1000) } },
-        { ipAddress: req.ip, createdAt: { $gt: new Date(Date.now() - 24 * 60 * 60 * 1000) } }
+        { email, createdAt: { $gt: new Date(Date.now() - 24*60*60*1000) } },
+        { ipAddress: req.ip, createdAt: { $gt: new Date(Date.now() - 24*60*60*1000) } }
       ]
     });
-
     if (recentSubmissions > 5) {
       throw new BadRequestError('Too many submissions. Please try again later.');
     }
 
-    // Create new contact submission
-    const submission = new ContactSubmission({
-      name,
-      email,
-      phone,
-      subject,
-      message,
+    // Save submission
+    const submission = await ContactSubmission.create({
+      name, email, phone, subject, message,
       ipAddress: req.ip,
       userAgent: req.get('user-agent'),
       referrer: req.get('referer'),
       status: 'new'
     });
 
-    await submission.save();
-    // await sendConfirmationEmail(email);
+    // Send confirmation email asynchronously (don’t block response)
+    sendConfirmationEmail(email, message).catch(err => console.error(err));
+
     res.status(201).json({
       status: 'success',
       message: 'Thank you for contacting us. We will get back to you soon!',
@@ -65,6 +54,7 @@ router.post(
     });
   }
 );
+
 
 // Get contact submissions (admin only)
 router.get(
