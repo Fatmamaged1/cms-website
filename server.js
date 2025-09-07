@@ -114,8 +114,8 @@ app.use("/api/v1/clients", clientRoutes);
 // يدعم القديم
 // دعم الصور القديمة مباشرة
 // يدعم القديم والجديد
-app.use('/uploads/images', express.static(path.join(__dirname, 'public/uploads/images')));
-app.use('/uploads/files', express.static(path.join(__dirname, 'public/uploads/files')));
+// سيعرض كل الملفات داخل uploads/images مباشرة من جذر السيرفر
+app.use(express.static(path.join(__dirname, 'public/uploads/images')));
 
 // Serve static assets in production
 if (process.env.NODE_ENV === 'production') {
