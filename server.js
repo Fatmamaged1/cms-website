@@ -109,7 +109,9 @@ app.use("/api/v1/partners", partnerRoutes);
 app.use("/api/v1/clients", clientRoutes);
 
 // Serve uploads folder statically
-app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
+app.use('/uploads/images', express.static(path.join(__dirname, 'public/uploads/images')));
+app.use('/uploads/files', express.static(path.join(__dirname, 'public/uploads/files')));
+
 // Serve static assets in production
 if (process.env.NODE_ENV === 'production') {
   // Set static folder
