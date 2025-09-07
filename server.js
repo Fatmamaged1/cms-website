@@ -109,6 +109,11 @@ app.use("/api/v1/partners", partnerRoutes);
 app.use("/api/v1/clients", clientRoutes);
 
 // Serve uploads folder statically
+a// القديم (direct in uploads/)
+// القديم (direct in uploads/)
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
+
+// الجديد (منظم)
 app.use('/uploads/images', express.static(path.join(__dirname, 'public/uploads/images')));
 app.use('/uploads/files', express.static(path.join(__dirname, 'public/uploads/files')));
 
