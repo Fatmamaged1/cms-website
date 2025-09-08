@@ -3,7 +3,7 @@ const JobApplication = require("../models/JobApplication");
 const path = require("path");
 const mongoose = require("mongoose");
 const slugify = require("slugify");
-
+const { sendCareerApplicationConfirmationEmail } = require("../services/sendMail");
 // إنشاء وظيفة جديدة
 exports.createCareer = async (req, res, next) => {
   try {
@@ -124,8 +124,15 @@ exports.applyToCareer = async (req, res, next) => {
 
     const job = await Career.findById(req.params.id).select("title location");
 
-    const resumeUrl = `${req.protocol}://${req.get("host")}/uploads/images/${path.basename(application.resume)}`;
-
+    const resumeUrl = `${req.protocol}://${req.get("host")}/${path.basename(application.resume)}`;
+    await sendCareerApplicationConfirmationEmail(email, {
+      fullName,
+      email,
+      phone,
+      message,
+      resumeUrl,
+      job
+    });
     res.status(201).json({
       success: true,
       message: "تم تقديم طلب التوظيف بنجاح",
@@ -219,8 +226,29 @@ exports.deleteCareer = async (req, res, next) => {
 exports.getAllApplicationsByCarrerId = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const applications = await JobApplication.find({ job: id });
-    return res.json({ success: true, data: applications });
+
+    // ✅ تأكد إن الكارير موجود
+    const career = await Career.findById(id);
+    if (!career) {
+      return res.status(404).json({ success: false, message: "Career not found" });
+    }
+
+    const applications = await JobApplication.find({ job: id })
+      .populate("job", "title slug") // ✅ يجيب العنوان والـ slug
+      .lean();
+
+    const enhancedApplications = applications.map(app => ({
+      ...app,
+      resume: app.resume
+        ? `${req.protocol}://${req.get("host")}/${path.basename(app.resume)}`
+        : null
+    }));
+
+    return res.json({
+      success: true,
+      count: enhancedApplications.length,
+      data: enhancedApplications
+    });
   } catch (error) {
     next(error);
   }
