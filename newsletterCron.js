@@ -8,7 +8,7 @@ const Service = require('./models/Service');
  * Weekly Blog Newsletter - كل يوم إثنين الساعة 9 صباحًا
  */
 
-cron.schedule('0 9 * * 1', async () => {
+cron.schedule('0 9 * * 2', async () => {
     try {
       console.log('📧 Testing weekly blog newsletter...');
   
