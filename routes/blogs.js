@@ -65,14 +65,15 @@ router.get('/:slug', async (req, res, next) => {
   }
 });
 
-// ✅ Create a new blog post
 router.post('/', handleUpload('featuredImage'), async (req, res, next) => {
+  // تحويل الحقول JSON إذا كانت نصوص
   ['content', 'categories', 'tags'].forEach((field) => {
     if (typeof req.body[field] === 'string') {
       try {
         req.body[field] = JSON.parse(req.body[field]);
       } catch (e) {
         console.warn(`Invalid JSON in ${field}:`, e.message);
+        req.body[field] = null; // بدل ما ينهار
       }
     }
   });
@@ -80,18 +81,20 @@ router.post('/', handleUpload('featuredImage'), async (req, res, next) => {
   await Promise.all([
     body('title').trim().notEmpty().withMessage('Title is required').run(req),
     body('excerpt').trim().notEmpty().withMessage('Excerpt is required').run(req),
-    body('content').isString().withMessage('Content must be a text').run(req),
+    body('content')
+      .optional({ nullable: true }) // يسمح بـ null أو undefined
+      .isString().withMessage('Content must be a text').run(req),
     body('status').isIn(['draft', 'published']).withMessage('Invalid status').run(req),
     body('language').isIn(['en', 'ar']).withMessage('Invalid language code').run(req),
     body('categories').optional().isArray().withMessage('Categories must be an array').run(req),
     body('tags').optional().isArray().withMessage('Tags must be an array').run(req)
   ]);
+  
 
   try {
     const errors = validationResult(req);
-    console.log(errors.array());
     if (!errors.isEmpty()) {
-      if (req.file) await fileService.deleteFileByUrl(req.body.image);
+      if (req.file) await fileService.deleteFileByUrl(req.file.filename);
       return next(new BadRequestError('Validation failed', 400, errors.array()));
     }
 
@@ -99,12 +102,8 @@ router.post('/', handleUpload('featuredImage'), async (req, res, next) => {
       ...req.body,
       author: req.user?._id,
       slug: req.body.slug || req.body.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
-      featuredImage: `${req.protocol}://${req.get('host')}/${req.file.filename}` || null
+      featuredImage: req.file ? `${req.protocol}://${req.get('host')}/${req.file.filename}` : null
     };
-
-    if (req.body.content?.blocks) {
-      postData.content = req.body.content;
-    }
 
     const post = await Blog.create(postData);
     await clearCache(`blog:${post.slug}`);
@@ -116,7 +115,7 @@ router.post('/', handleUpload('featuredImage'), async (req, res, next) => {
       data: post
     });
   } catch (error) {
-    if (req.file) await fileService.deleteFileByUrl(req.body.image);
+    if (req.file) await fileService.deleteFileByUrl(req.file.filename);
     next(error);
   }
 });
