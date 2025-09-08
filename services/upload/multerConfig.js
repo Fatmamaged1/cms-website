@@ -139,11 +139,19 @@ const handleMultipleUploads = (fieldsArray, type = 'image') => {
     });
   };
 };
+//  uploadFilePDF
+const uploadFilePDF = (fieldName = 'file', type = 'file') => {
+  return (req,res,next)=>{
+      const upload = type === 'file' ? uploadFile.single(fieldName) : uploadFilePDF.single(fieldName);
+    upload(req,res,next);
+  };
+};
 
 
 module.exports = {
   uploadImage,
   uploadFile,
+  uploadFilePDF,
   handleUpload,
   handleMultipleUploads
 };

@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const careerController = require("../controllers/careerController");
-const { handleUpload } = require("../services/upload");
+const{ uploadFilePDF} = require("../services/upload");
 
 // ============================
 // 🔹 GET: جميع الوظائف مع فلاتر
@@ -23,18 +23,23 @@ router.post("/", careerController.createCareer);
 // =======================================
 router.post(
   "/:id/apply",
-  handleUpload("resume"), // ⚠️ تأكد أن اسم الحقل في الفورم هو "resume"
+    uploadFilePDF("resume"), // ⚠️ تأكد أن اسم الحقل في الفورم هو "resume"
   careerController.applyToCareer
 );
 
 // ============================
 // 🔹 PUT: تحديث وظيفة
 // ============================
-router.put("/:id", handleUpload("resume"), careerController.updateCareer);
+router.put("/:id",uploadFilePDF("resume"), careerController.updateCareer);
 
 // ============================
 // 🔹 DELETE: حذف وظيفة
 // ============================
 router.delete("/:id", careerController.deleteCareer);
+
+// ============================
+// 🔹 GET: جميع الطلبات
+// ============================
+router.get("/:id/applications", careerController.getAllApplicationsByCarrerId);
 
 module.exports = router;
