@@ -8,7 +8,7 @@ const Service = require('./models/Service');
  * Weekly Blog Newsletter - كل يوم إثنين الساعة 9 صباحًا
  */
 
-cron.schedule('0 11 * * 2', async () => {
+cron.schedule('* * * * *', async () => {
     try {
       console.log('📧 Testing weekly blog newsletter...');
   
@@ -22,7 +22,7 @@ cron.schedule('0 11 * * 2', async () => {
       console.log(`Found ${emails.length} contacts and ${blogs.length} blogs`);
   
       if (emails.length > 0 && blogs.length > 0) {
-        // فقط للاختبار: يمكنك إرسال إلى إيميلك الخاص
+        // فقط للاختبار: يمكنك إرسال إل ى إيميلك الخاص
        //  const testEmails = ['fatma.m.elessawy@gmail.com'];
          await sendNewBlogsEachWeekToAllContacts(emails, blogs.map(b => ({
             title: b.title,
@@ -46,7 +46,7 @@ cron.schedule('0 11 * * 2', async () => {
  */
 cron.schedule('0 10 1 * *', async () => {
   try {
-    console.log('Running monthly services newsletter...');
+    console.log('📧 Testing monthly services newsletter...');
 
     // جلب كل جهات الاتصال
     const contacts = await ContactSubmission.find().select('email').lean();
