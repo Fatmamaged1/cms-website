@@ -27,7 +27,7 @@ cron.schedule('0 11 * * 2', async () => {
          await sendNewBlogsEachWeekToAllContacts(emails, blogs.map(b => ({
             title: b.title,
             excerpt: b.excerpt,
-            link: `https://yourdomain.com/blogs/${b.slug}`,
+            link: `http://46.202.134.87:2222/api/v1/blogs/${b.slug}`,
             image: b.featuredImage,
             publishDate: b.createdAt.toLocaleDateString()
           })));
@@ -65,7 +65,7 @@ cron.schedule('0 10 1 * *', async () => {
         title: s.title,
         description: s.description,
         price: s.price,
-        link: `https://yourdomain.com/services/${s.slug}`,
+        link: `http://46.202.134.87:2222/api/v1/services/${s.slug}`,
         image: s.featuredImage,
         category: s.category
       })));
