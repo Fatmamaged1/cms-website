@@ -8,38 +8,38 @@ const Service = require('./models/Service');
  * Weekly Blog Newsletter - كل يوم إثنين الساعة 9 صباحًا
  */
 
-cron.schedule('0 9 * * 2', async () => {
-    try {
-      console.log('📧 Testing weekly blog newsletter...');
-  
-      const contacts = await ContactSubmission.find().select('email').lean();
-      const emails = contacts.map(c => c.email);
-  
-      const blogs = await Blog.find({ isActive: true })
-        .select('title excerpt slug featuredImage createdAt')
-        .lean();
-  
-      console.log(`Found ${emails.length} contacts and ${blogs.length} blogs`);
-  
-      if (emails.length > 0 && blogs.length > 0) {
-        // فقط للاختبار: يمكنك إرسال إلى إيميلك الخاص
-       //  const testEmails = ['fatma.m.elessawy@gmail.com'];
-         await sendNewBlogsEachWeekToAllContacts(emails, blogs.map(b => ({
-            title: b.title,
-            excerpt: b.excerpt,
-            link: `https://yourdomain.com/blogs/${b.slug}`,
-            image: b.featuredImage,
-            publishDate: b.createdAt.toLocaleDateString()
-          })));
-          
-        console.log('Newsletter sent successfully!');
-      } else {
-        console.log('No emails or blogs to send this week.');
-      }
-    } catch (err) {
-      console.error('Error in weekly blog cron:', err);
+cron.schedule('* * * * *', async () => {
+  try {
+    console.log('📧 Testing weekly blog newsletter...');
+
+    const contacts = await Contact.find({ isActive: true }).select('email').lean();
+    const emails = contacts.map(c => c.email);
+
+    const blogs = await Blog.find({ isActive: true })
+      .select('title excerpt slug featuredImage createdAt')
+      .lean();
+
+    console.log(`Found ${emails.length} contacts and ${blogs.length} blogs`);
+
+    if (emails.length > 0 && blogs.length > 0) {
+      // فقط للاختبار: يمكنك إرسال إلى إيميلك الخاص
+      // const testEmails = ['your.email@example.com'];
+      await sendNewBlogsEachWeekToAllContacts(emails, blogs.map(b => ({
+        title: b.title,
+        excerpt: b.excerpt,
+        link: `https://yourdomain.com/blogs/${b.slug}`,
+        image: b.featuredImage,
+        publishDate: b.createdAt.toLocaleDateString()
+      })));
+      console.log('Newsletter sent successfully!');
+    } else {
+      console.log('No emails or blogs to send this week.');
     }
-  });
+  } catch (err) {
+    console.error('Error in weekly blog cron:', err);
+  }
+});
+
   
 /**
  * Monthly Services Newsletter - يوم 1 من كل شهر الساعة 10 صباحًا
