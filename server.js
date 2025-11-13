@@ -25,23 +25,13 @@ const { errorHandler } = require('./utils/errors');
 const app = express();
 
 // ===== CORS configuration =====
-const allowedOrigins = [
-  "http://localhost:5173",
-  "http://46.202.134.87:2222"
-];
-
 app.use(cors({
-  origin: function(origin, callback) {
-    if (!origin) return callback(null, true); // Postman or server-to-server
-    if (allowedOrigins.indexOf(origin) === -1) {
-      return callback(new Error("CORS policy: هذا الدومين غير مسموح"), false);
-    }
-    return callback(null, true);
-  },
+  origin: ["http://localhost:5173", "http://46.202.134.87:2222"],
+  credentials: true,
   methods: ["GET","POST","PUT","DELETE","PATCH","OPTIONS"],
-  allowedHeaders: ["Content-Type","Authorization","x-access-token"],
-  credentials: true // يسمح بإرسال cookies وAuthorization headers
+  allowedHeaders: ["Content-Type","Authorization","x-access-token"]
 }));
+
 
 // Handle preflight requests
 app.options("*", cors());
