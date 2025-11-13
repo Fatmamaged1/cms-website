@@ -24,14 +24,14 @@ const { errorHandler } = require('./utils/errors');
 
 const app = express();
 
-// ===== CORS configuration =====
+// ===== CORS configuration (مضمونة) =====
 const allowedOrigins = [
   "http://localhost:5173",
   "http://127.0.0.1:5173",
   "http://46.202.134.87:2222"
 ];
 
-app.use(cors({
+const corsOptions = {
   origin: function(origin, callback) {
     if (!origin) return callback(null, true); // Postman أو server-to-server
     if (allowedOrigins.includes(origin)) {
@@ -43,11 +43,13 @@ app.use(cors({
   credentials: true,
   methods: ["GET","POST","PUT","DELETE","PATCH","OPTIONS"],
   allowedHeaders: ["Content-Type","Authorization","x-access-token"]
-}));
+};
 
+// Apply CORS for all routes
+app.use(cors(corsOptions));
 
-// Handle preflight requests
-app.options("*", cors());
+// Handle preflight requests with the same options
+app.options('*', cors(corsOptions));
 
 // ===== Logging =====
 if (process.env.NODE_ENV === 'development') app.use(morgan('dev'));
