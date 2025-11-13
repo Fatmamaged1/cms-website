@@ -32,8 +32,8 @@ const app = express();
 //app.use(helmet());
 
 app.use(cors({
-  origin: true, // كل المواقع مسموح لها
-  methods: ['GET', 'POST', 'PUT', 'DELETE'], // حددت طرق الطلب
+  origin: "*", // كل المواقع مسموح لها
+  methods: ['GET', 'POST', 'PUT', 'DELETE','OPTIONS'], // حددت طرق الطلب
   credentials: true // إذا كنت تستخدم الكوكيز أو التوكن
 }));
 
