@@ -2,14 +2,12 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-//const helmet = require('helmet');
 const morgan = require('morgan');
 const compression = require('compression');
 const path = require('path');
 const rateLimit = require('express-rate-limit');
 const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
-//const hpp = require('hpp');
 const cookieParser = require('cookie-parser');
 
 // Import routes
@@ -21,74 +19,111 @@ const contactRoutes = require('./routes/contact');
 const aboutRoutes = require('./routes/about');
 const clientRoutes = require('./routes/clients');
 const partnerRoutes = require('./routes/partners');
-const { errorHandler } = require('./utils/errors');
 const authRoutes = require("./routes/auth");
+const { errorHandler } = require('./utils/errors');
 
-
-// Initialize express app
 const app = express();
 
-// Set security HTTP headers
-//app.use(helmet());
+// ======= CORS Configuration =======
+const allowedOrigins = [
+  "http://localhost:5173",          // Development frontend
+  "http://46.202.134.87:2222"       // Production frontend
+];
 
 app.use(cors({
-  origin: "*",
+  origin: function(origin, callback) {
+    if (!origin) return callback(null, true); // Allow Postman or server-to-server requests
+    if (allowedOrigins.indexOf(origin) === -1) {
+      return callback(new Error("CORS policy: هذا الدومين غير مسموح"), false);
+    }
+    return callback(null, true);
+  },
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", "x-access-token"],
-  credentials: false
+  credentials: true
 }));
 
-// Development logging
+// Handle preflight requests
+app.options("*", cors());
+
+// ======= Logging =======
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
 
-// Limit requests from same API
+// ======= Rate Limiting =======
 const limiter = rateLimit({
-  max: 100, // 100 requests per windowMs
+  max: 100,
   windowMs: 60 * 60 * 1000, // 1 hour
   message: 'Too many requests from this IP, please try again in an hour!'
 });
 app.use('/api', limiter);
 
-// Body parser, reading data from body into req.body with size limit
+// ======= Body Parser =======
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
-// Data sanitization against NoSQL query injection
-app.use(mongoSanitize());
+// ======= Security Middleware =======
+app.use(mongoSanitize()); // NoSQL injection
+app.use(xss());           // XSS protection
+app.use(cookieParser());  // Cookie parser
+app.use(compression());   // Compression
 
-// Data sanitization against XSS
-app.use(xss());
-
-// Prevent parameter pollution (must come before routes)
-//app.use(hpp({
-//  whitelist: [
-//    'duration', 'ratingsQuantity', 'ratingsAverage', 'maxGroupSize', 'difficulty', 'price'
-//  ]
-//}));
-
-// Cookie parser
-app.use(cookieParser());
-
-// Compression middleware (should be placed before routes)
-app.use(compression());
-
-// Database connection
-mongoose
-  .connect(process.env.MONGODB_URI)
+// ======= Database Connection =======
+mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('✅ MongoDB connected successfully'))
-  .catch((err) => {
+  .catch(err => {
     console.error('❌ MongoDB connection error:', err.message);
-    process.exit(1); // Exit process with failure
+    process.exit(1);
   });
-// Handle unhandled promise rejections
+
+// ======= API Routes =======
+app.use('/api/v1/pages', pageRoutes);
+app.use('/api/v1/services', serviceRoutes);
+app.use('/api/v1/blogs', blogRoutes);
+app.use('/api/v1/careers', careerRoutes);
+app.use('/api/v1/about', aboutRoutes);
+app.use('/api/v1/contact', contactRoutes);
+app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/partners', partnerRoutes);
+app.use('/api/v1/clients', clientRoutes);
+
+// ======= Static Files =======
+app.use(express.static(path.join(__dirname, 'public/uploads/images')));
+app.use(express.static(path.join(__dirname, 'public/uploads/files')));
+app.use('/uploads/images', express.static(path.join(__dirname, 'public/uploads/images')));
+app.use('/uploads/files', express.static(path.join(__dirname, 'public/uploads/files')));
+
+// Serve client build in production
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '../client/build')));
+  app.get('*', (req, res) => {
+    res.sendFile(path.resolve(__dirname, '..', 'client', 'build', 'index.html'));
+  });
+}
+
+// ======= 404 Handler =======
+app.all('*', (req, res) => {
+  res.status(404).json({
+    status: 'fail',
+    message: `Can't find ${req.originalUrl} on this server!`
+  });
+});
+
+// ======= Global Error Handler =======
+app.use(errorHandler);
+
+// ======= Start Server =======
+const PORT = process.env.PORT || 3000;
+const server = app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT} in ${process.env.NODE_ENV} mode`);
+});
+
+// ======= Handle Unhandled Rejections =======
 process.on('unhandledRejection', (err) => {
-  console.log(err);
   console.error('UNHANDLED REJECTION! 💥 Shutting down...');
   console.error(err.name, err.message);
-  // Close server & exit process
-  
+  server.close(() => process.exit(1));
 });
 
 process.on('SIGTERM', () => {
@@ -98,57 +133,5 @@ process.on('SIGTERM', () => {
   });
 });
 
-// API routes
-app.use('/api/v1/pages', pageRoutes);
-app.use('/api/v1/services', serviceRoutes);
-app.use('/api/v1/blogs', blogRoutes);
-app.use('/api/v1/careers', careerRoutes);
-app.use('/api/v1/about', aboutRoutes);
-app.use('/api/v1/contact', contactRoutes);
-app.use("/api/v1/auth", authRoutes);
-app.use("/api/v1/partners", partnerRoutes);
-app.use("/api/v1/clients", clientRoutes);
-
-// Serve uploads folder statically
-// القديم (direct in uploads/)
-// القديم (direct in uploads/)
-// يدعم القديم
-// دعم الصور القديمة مباشرة
-// يدعم القديم والجديد
-// سيعرض كل الملفات داخل uploads/images مباشرة من جذر السيرفر
-app.use(express.static(path.join(__dirname, 'public/uploads/images')));
-app.use(express.static(path.join(__dirname, 'public/uploads/files')));
-app.use('/uploads/images', express.static(path.join(__dirname, 'public/uploads/images')));
-app.use('/uploads/files', express.static(path.join(__dirname, 'public/uploads/files')));
-
-
-// Serve static assets in production
-if (process.env.NODE_ENV === 'production') {
-  // Set static folder
-  app.use(express.static(path.join(__dirname, '../client/build')));
-
-  app.get('*', (req, res) => {
-    res.sendFile(path.resolve(__dirname, '..', 'client', 'build', 'index.html'));
-  });
-}
-
-
-// Handle 404 - Keep this as the last route
-app.all('*', (req, res) => {
-  res.status(404).json({
-    status: 'fail',
-    message: `Can't find ${req.originalUrl} on this server!`
-  });
-});
-
-// Global error handling middleware
-app.use(errorHandler);
-
-// Start server
-const PORT = process.env.PORT || 3000;
-const server = app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT} in ${process.env.NODE_ENV} mode`);
-});
-
-// Run newsletter cron jobs
+// ======= Newsletter Cron =======
 require('./newsletterCron');
