@@ -31,12 +31,13 @@ const app = express();
 // Set security HTTP headers
 //app.use(helmet());
 
-app.use(cors({
-  origin: "*", // كل المواقع مسموح لها
-  methods: ['GET', 'POST', 'PUT', 'DELETE','OPTIONS'], // حددت طرق الطلب
-  credentials: true // إذا كنت تستخدم الكوكيز أو التوكن
-}));
 
+app.use(cors({
+  origin: "*", // ✅ يسمح لكل الـ Origins مؤقتًا
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "x-access-token"],
+  credentials: false // مهم: ماينفعش true مع "*"
+}));
 // Development logging
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
