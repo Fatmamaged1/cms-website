@@ -214,15 +214,27 @@ exports.updateCareer = async (req, res, next) => {
 exports.deleteCareer = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const career = await Career.findByIdAndDelete(id);
+
+    const career = await Career.findById(id);
     if (!career) {
-      return res.status(404).json({ success: false, message: "الوظيفة غير موجودة" });
+      return res.status(404).json({
+        success: false,
+        message: "الوظيفة غير موجودة"
+      });
     }
-    return res.json({ success: true,message: "تم حذف الوظيفة بنجاح" });
+
+    await Career.findByIdAndDelete(id);
+
+    return res.json({
+      success: true,
+      message: "تم حذف الوظيفة بنجاح"
+    });
+
   } catch (error) {
     next(error);
   }
 };
+
 exports.getAllApplicationsByCarrerId = async (req, res, next) => {
   try {
     const { id } = req.params;

@@ -177,24 +177,42 @@ router.patch('/:id', handleUpload('featuredImage'), [
 });
 
 // ✅ Delete a blog post
-router.delete('/:id', [param('id').isMongoId().withMessage('Invalid post ID')], async (req, res, next) => {
+router.delete('/:id', 
+  [param('id').isMongoId().withMessage('Invalid post ID')],
+  async (req, res, next) => {
+
   try {
     const post = await Blog.findById(req.params.id);
-    if (!post) return next(new NotFoundError('No blog post found with that ID', 404));
 
+    if (!post) {
+      return next(new NotFoundError('No blog post found with that ID', 404));
+    }
+
+    // احذف الصورة
+    if (post.featuredImage) {
+      try {
+        await fileService.deleteFileByUrl(post.featuredImage);
+      } catch (e) {
+        console.error("Failed to delete image:", e);
+      }
+    }
+
+    // احذف البوست
     await Blog.findByIdAndDelete(req.params.id);
-    if (post.featuredImage) await fileService.deleteFileByUrl(post.featuredImage);
 
+    // امسح الكاش
     await clearCache(`blog:${post.slug}`);
-    await clearCache('blog:list*');
+    await clearCache('blog:list:*');
 
-    sendResponse(res, {
+    return sendResponse(res, {
       message: 'Blog post deleted successfully',
       data: null
     });
+
   } catch (error) {
     next(error);
   }
 });
+
 
 module.exports = router;
