@@ -1,11 +1,9 @@
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
-const cors = require('cors');
 const morgan = require('morgan');
 const compression = require('compression');
 const path = require('path');
-const rateLimit = require('express-rate-limit');
 const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 const cookieParser = require('cookie-parser');
@@ -24,43 +22,16 @@ const { errorHandler } = require('./utils/errors');
 
 const app = express();
 
-// ===== CORS configuration (مضمونة) =====
-const allowedOrigins = [
-  "http://localhost:5173",
-  "http://127.0.0.1:5173",
-  "http://46.202.134.87:2222"
-];
-
-const corsOptions = {
-  origin: function(origin, callback) {
-    if (!origin) return callback(null, true); // Postman أو server-to-server
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    } else {
-      return callback(new Error("CORS policy: هذا الدومين غير مسموح"));
-    }
-  },
-  credentials: true,
-  methods: ["GET","POST","PUT","DELETE","PATCH","OPTIONS"],
-  allowedHeaders: ["Content-Type","Authorization","x-access-token"]
-};
-
-// Apply CORS for all routes
-app.use(cors(corsOptions));
-
-// Handle preflight requests with the same options
-app.options('*', cors(corsOptions));
+// ===== CORS =====
+const cors = require('cors');
+app.use(cors({
+  origin: true, // Allow all origins
+  credentials: true
+}));
+app.options('*', cors());
 
 // ===== Logging =====
 if (process.env.NODE_ENV === 'development') app.use(morgan('dev'));
-
-// ===== Rate Limiting =====
-const limiter = rateLimit({
-  max: 100,
-  windowMs: 60*60*1000,
-  message: 'Too many requests from this IP, please try again in an hour!'
-});
-app.use('/api', limiter);
 
 // ===== Body Parser =====
 app.use(express.json({ limit: '10mb' }));
@@ -100,14 +71,14 @@ app.use('/uploads/files', express.static(path.join(__dirname,'public/uploads/fil
 // Serve React build in production
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname,'../client/build')));
-  app.get('*',(req,res)=>res.sendFile(path.resolve(__dirname,'..','client','build','index.html')));
+  app.get('*', (req, res) => res.sendFile(path.resolve(__dirname,'..','client','build','index.html')));
 }
 
 // ===== 404 Handler =====
-app.all('*',(req,res)=>{
+app.all('*', (req, res) => {
   res.status(404).json({
-    status:'fail',
-    message:`Can't find ${req.originalUrl} on this server!`
+    status: 'fail',
+    message: `Can't find ${req.originalUrl} on this server!`
   });
 });
 
@@ -116,7 +87,7 @@ app.use(errorHandler);
 
 // ===== Start Server =====
 const PORT = process.env.PORT || 3000;
-const server = app.listen(PORT,()=>{
+const server = app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT} in ${process.env.NODE_ENV} mode`);
 });
 
@@ -124,12 +95,12 @@ const server = app.listen(PORT,()=>{
 process.on('unhandledRejection', (err) => {
   console.error('UNHANDLED REJECTION! 💥 Shutting down...');
   console.error(err.name, err.message);
-  server.close(()=>process.exit(1));
+  server.close(() => process.exit(1));
 });
 
-process.on('SIGTERM', ()=>{
+process.on('SIGTERM', () => {
   console.log('👋 SIGTERM RECEIVED. Shutting down gracefully');
-  server.close(()=>console.log('💥 Process terminated!'));
+  server.close(() => console.log('💥 Process terminated!'));
 });
 
 // ===== Newsletter Cron =====
