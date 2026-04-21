@@ -84,12 +84,14 @@ async function seed() {
       hero: {
         title: 'PRE-MED: Your Premium Medical Solution',
         subtitle: "Saudi Arabia's trusted partner for premium orthopedic implants, surgical systems, and clinical excellence – powering better patient outcomes across the Kingdom and beyond.",
+        backgroundImage: 'https://images.unsplash.com/photo-1551190822-a9ce113ac100?w=1920&q=80',
         ctaText: 'Request a Meeting',
         ctaLink: '/contact',
       },
       about: {
         title: 'About Premium Medical Solutions Company',
         subtitle: 'COMPANY PROFILE',
+        image: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=1200&q=80',
         content: JSON.stringify({
           paragraph1: 'Premium Medical Solutions Company (PRE-MED) is a Saudi-based healthcare distributor dedicated to advancing medical care across the Kingdom and the Middle East. Since our founding in 2020, we have built a strong reputation for delivering high-quality medical solutions, technical expertise, and reliable service to healthcare providers throughout the region.',
           paragraph2: 'Initially established to serve the orthopedic sector, PRE-MED has grown into a trusted partner for hospitals and surgeons – offering a comprehensive range of implants, instruments, and surgical accessories. Building on this foundation, we are strategically expanding our portfolio to include additional medical specialties, broadening our ability to meet the evolving needs of the healthcare industry.',
@@ -130,6 +132,10 @@ async function seed() {
     title: 'About Premium Medical Solutions Company',
     language: 'en',
     isActive: true,
+    image: {
+      url: 'https://images.unsplash.com/photo-1504439468489-c8920d796a29?w=1200&q=80',
+      alt: 'PRE-MED Premium Medical Solutions office and team',
+    },
     content: JSON.stringify({
       companyProfile: {
         badge: 'COMPANY PROFILE',
@@ -320,12 +326,12 @@ async function seed() {
   // 5. PARTNERS (Innovative Product Partnerships)
   // ──────────────────────────────────────────────
   const partners = await Partner.insertMany([
-    { name: 'Acumed', slug: 'acumed', url: 'https://www.acumed.net', logo: 'https://www.acumed.net/wp-content/uploads/2020/01/acumed-logo.svg', brief: 'Innovative solutions for orthopedic trauma and upper extremity surgery, trusted by surgeons worldwide.' },
-    { name: 'Movmedix', slug: 'movmedix', url: 'https://www.movmedix.com', logo: 'https://www.movmedix.com/wp-content/uploads/2023/01/movmedix-logo.png', brief: 'Advanced motion and sports medicine technologies for soft tissue repair and ligament reconstruction.' },
-    { name: 'GetSet Surgical', slug: 'getset-surgical', url: 'https://www.getsetsurgical.com', logo: 'https://www.getsetsurgical.com/wp-content/uploads/2022/01/getset-logo.png', brief: 'Precision surgical instruments and systems engineered for the demands of modern orthopedic procedures.' },
-    { name: 'OTOM', slug: 'otom', url: 'https://www.theotom.com', logo: 'https://www.theotom.com/wp-content/uploads/otom-logo.png', brief: 'Specialized orthopedic and trauma solutions designed to address complex clinical challenges with precision.' },
-    { name: 'Paradigm BioDevices', slug: 'paradigm-biodevices', url: 'https://www.paradigmbiodevices.com', logo: 'https://www.paradigmbiodevices.com/wp-content/uploads/paradigm-logo.png', brief: 'Biodevice innovations focused on advancing fixation and healing outcomes in orthopedic surgery.' },
-    { name: 'Hyprevention', slug: 'hyprevention', url: 'https://www.hyprevention.com', logo: 'https://www.hyprevention.com/wp-content/uploads/hyprevention-logo.png', brief: 'Cutting-edge solutions for fracture prevention and bone health management in aging patient populations.' },
+    { name: 'Acumed', slug: 'acumed', url: 'https://www.acumed.net', logo: 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=400&q=80', brief: 'Innovative solutions for orthopedic trauma and upper extremity surgery, trusted by surgeons worldwide.' },
+    { name: 'Movmedix', slug: 'movmedix', url: 'https://www.movmedix.com', logo: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&q=80', brief: 'Advanced motion and sports medicine technologies for soft tissue repair and ligament reconstruction.' },
+    { name: 'GetSet Surgical', slug: 'getset-surgical', url: 'https://www.getsetsurgical.com', logo: 'https://images.unsplash.com/photo-1551076805-e1869033e561?w=400&q=80', brief: 'Precision surgical instruments and systems engineered for the demands of modern orthopedic procedures.' },
+    { name: 'OTOM', slug: 'otom', url: 'https://www.theotom.com', logo: 'https://images.unsplash.com/photo-1516549655169-df83a0774514?w=400&q=80', brief: 'Specialized orthopedic and trauma solutions designed to address complex clinical challenges with precision.' },
+    { name: 'Paradigm BioDevices', slug: 'paradigm-biodevices', url: 'https://www.paradigmbiodevices.com', logo: 'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=400&q=80', brief: 'Biodevice innovations focused on advancing fixation and healing outcomes in orthopedic surgery.' },
+    { name: 'Hyprevention', slug: 'hyprevention', url: 'https://www.hyprevention.com', logo: 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&q=80', brief: 'Cutting-edge solutions for fracture prevention and bone health management in aging patient populations.' },
   ]);
   console.log('Partners seeded:', partners.length);
 
@@ -336,6 +342,8 @@ async function seed() {
     {
       title: 'Arthroplasty', slug: 'arthroplasty', language: 'en', isActive: true,
       subtitle: 'Joint Replacement Systems', featured: true, order: 0,
+      featuredImage: 'https://images.unsplash.com/photo-1530497610245-b489b3feec8a?w=1200&q=80',
+      thumbnail: 'https://images.unsplash.com/photo-1530497610245-b489b3feec8a?w=400&q=80',
       excerpt: 'Knee, hip, shoulder, ankle, and small joint replacement systems – premium implants for primary and revision procedures.',
       content: '<h2>Arthroplasty</h2><p>Knee, hip, shoulder, ankle, and small joint replacement systems – premium implants for primary and revision procedures.</p><p>PRE-MED provides a complete range of arthroplasty solutions from world-class manufacturers, covering primary and complex revision surgeries. Our systems are backed by clinical evidence and supported by dedicated surgical training programs.</p>',
       tags: ['arthroplasty', 'joint replacement', 'knee', 'hip', 'shoulder', 'ankle'],
@@ -344,6 +352,8 @@ async function seed() {
     {
       title: 'Trauma & Extremities', slug: 'trauma-and-extremities', language: 'en', isActive: true,
       subtitle: 'Fracture Fixation Systems', featured: true, order: 1,
+      featuredImage: 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=1200&q=80',
+      thumbnail: 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=400&q=80',
       excerpt: 'Plates, intramedullary nails, and advanced fixation systems designed for reliability in high-acuity trauma settings.',
       content: '<h2>Trauma & Extremities</h2><p>Plates, intramedullary nails, and advanced fixation systems designed for reliability in high-acuity trauma settings.</p><p>Our trauma portfolio covers the full spectrum of fracture management – from simple fractures to complex polytrauma cases. Each system is selected for its clinical reliability, ease of use, and proven surgical outcomes.</p>',
       tags: ['trauma', 'extremities', 'fracture fixation', 'plates', 'nails'],
@@ -352,6 +362,8 @@ async function seed() {
     {
       title: 'Spine', slug: 'spine', language: 'en', isActive: true,
       subtitle: 'Spinal Surgery Solutions', featured: true, order: 2,
+      featuredImage: 'https://images.unsplash.com/photo-1559757175-5700dde675bc?w=1200&q=80',
+      thumbnail: 'https://images.unsplash.com/photo-1559757175-5700dde675bc?w=400&q=80',
       excerpt: 'Pre-sterile, single-use spinal systems; minimally invasive surgery (MIS) solutions for safer, faster recoveries.',
       content: '<h2>Spine</h2><p>Pre-sterile, single-use spinal systems; minimally invasive surgery (MIS) solutions for safer, faster recoveries.</p><p>PRE-MED delivers advanced spinal solutions designed for both open and minimally invasive procedures. Our systems prioritize patient safety, procedural efficiency, and reproducible clinical outcomes.</p>',
       tags: ['spine', 'spinal surgery', 'MIS', 'minimally invasive'],
@@ -360,6 +372,8 @@ async function seed() {
     {
       title: 'Sports Medicine', slug: 'sports-medicine', language: 'en', isActive: true,
       subtitle: 'Arthroscopic & Soft Tissue Solutions', featured: true, order: 3,
+      featuredImage: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=1200&q=80',
+      thumbnail: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&q=80',
       excerpt: 'Ligament reconstruction, soft tissue repair, and arthroscopic systems – trusted by sports surgeons across the Kingdom.',
       content: '<h2>Sports Medicine</h2><p>Ligament reconstruction, soft tissue repair, and arthroscopic systems – trusted by sports surgeons across the Kingdom.</p><p>Our sports medicine portfolio equips surgeons with the latest technologies for ACL/PCL reconstruction, rotator cuff repair, meniscus treatment, and advanced arthroscopic procedures.</p>',
       tags: ['sports medicine', 'arthroscopy', 'ligament reconstruction', 'soft tissue repair'],
@@ -368,6 +382,8 @@ async function seed() {
     {
       title: 'Surgical Accessories', slug: 'surgical-accessories', language: 'en', isActive: true,
       subtitle: 'Instruments & Consumables', featured: true, order: 4,
+      featuredImage: 'https://images.unsplash.com/photo-1581595220892-b0739db3ba8c?w=1200&q=80',
+      thumbnail: 'https://images.unsplash.com/photo-1581595220892-b0739db3ba8c?w=400&q=80',
       excerpt: 'Instruments, wound closure, bone cement, and complementary consumables to support every stage of the surgical episode.',
       content: '<h2>Surgical Accessories</h2><p>Instruments, wound closure, bone cement, and complementary consumables to support every stage of the surgical episode.</p><p>PRE-MED provides a comprehensive catalog of surgical accessories that complement our implant systems – ensuring surgical teams have everything needed for optimal procedural outcomes.</p>',
       tags: ['surgical accessories', 'instruments', 'bone cement', 'wound closure', 'consumables'],
@@ -381,11 +397,11 @@ async function seed() {
   // ──────────────────────────────────────────────
   const ClientModel = mongoose.model('Client');
   await ClientModel.insertMany([
-    { name: 'Ministry of Health', logo: 'https://www.moh.gov.sa/en/Ministry/About/PublishingImages/MOH-logo-en.png', brief: 'Ministry of Health hospitals across the Kingdom of Saudi Arabia.' },
-    { name: 'King Fahd Medical City', logo: 'https://www.kfmc.med.sa/Style%20Library/KFMC/images/logo.png', brief: 'One of the largest and most advanced medical complexes in the Kingdom.' },
-    { name: 'King Faisal Specialist Hospital & Research Centre', logo: 'https://www.kfshrc.edu.sa/assets/images/kfshrc-logo.svg', brief: 'Premier quaternary care and research institution in Saudi Arabia.' },
-    { name: 'National Guard Health Affairs', logo: 'https://ngha.med.sa/English/PublishingImages/NGHA-Logo.png', brief: 'Comprehensive military healthcare system serving National Guard personnel and families.' },
-    { name: 'Military & Security Forces Hospitals', logo: 'https://www.msd.med.sa/Style%20Library/MSD/images/logo.png', brief: 'Military & Security Forces hospitals and high-readiness trauma networks.' },
+    { name: 'Ministry of Health', logo: 'https://images.unsplash.com/photo-1538108149393-fbbd81895907?w=400&q=80', brief: 'Ministry of Health hospitals across the Kingdom of Saudi Arabia.' },
+    { name: 'King Fahd Medical City', logo: 'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=400&q=80', brief: 'One of the largest and most advanced medical complexes in the Kingdom.' },
+    { name: 'King Faisal Specialist Hospital & Research Centre', logo: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=400&q=80', brief: 'Premier quaternary care and research institution in Saudi Arabia.' },
+    { name: 'National Guard Health Affairs', logo: 'https://images.unsplash.com/photo-1551601651-2a8555f1a136?w=400&q=80', brief: 'Comprehensive military healthcare system serving National Guard personnel and families.' },
+    { name: 'Military & Security Forces Hospitals', logo: 'https://images.unsplash.com/photo-1631815588090-d4bfec5b1ccb?w=400&q=80', brief: 'Military & Security Forces hospitals and high-readiness trauma networks.' },
   ]);
   console.log('Clients seeded');
 
