@@ -18,17 +18,75 @@ const aboutRoutes = require('./routes/about');
 const clientRoutes = require('./routes/clients');
 const partnerRoutes = require('./routes/partners');
 const authRoutes = require("./routes/auth");
+const testimonialRoutes = require('./routes/testimonials');
+const termsRoutes = require('./routes/termsConditions');
+const privacyRoutes = require('./routes/privacyPolicy');
 const { errorHandler } = require('./utils/errors');
 
 const app = express();
 
 // ===== CORS =====
 const cors = require('cors');
+const allowedOrigins = process.env.ALLOWED_ORIGINS 
+  ? process.env.ALLOWED_ORIGINS.split(',') 
+  : ['http://localhost:3000', 'http://localhost:3001'];
+
 app.use(cors({
-  origin: true, // Allow all origins
-  credentials: true
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      return callback(new Error('Not allowed by CORS'), false);
+    }
+    return callback(null, true);
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.options('*', cors());
+
+// ===== Security Headers (Helmet) =====
+const helmet = require('helmet');
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "https:"],
+    },
+  },
+  crossOriginEmbedderPolicy: false,
+}));
+
+// ===== Rate Limiting =====
+const rateLimit = require('express-rate-limit');
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: { 
+    status: 'error', 
+    message: 'Too many requests, please try again later.' 
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use('/api/', globalLimiter);
+
+const authLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 10, // limit each IP to 10 login attempts per hour
+  message: { 
+    status: 'error', 
+    message: 'Too many login attempts, please try again later.' 
+  },
+});
+app.use('/api/v1/auth/login', authLimiter);
+
+// ===== HTTP Parameter Pollution Protection =====
+const hpp = require('hpp');
+app.use(hpp());
 
 // ===== Logging =====
 if (process.env.NODE_ENV === 'development') app.use(morgan('dev'));
@@ -61,6 +119,9 @@ app.use('/api/v1/contact', contactRoutes);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/partners', partnerRoutes);
 app.use('/api/v1/clients', clientRoutes);
+app.use('/api/v1/testimonials', testimonialRoutes);
+app.use('/api/v1/terms-conditions', termsRoutes);
+app.use('/api/v1/privacy-policy', privacyRoutes);
 
 // ===== Static Files =====
 app.use(express.static(path.join(__dirname,'public/uploads/images')));

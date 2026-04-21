@@ -4,7 +4,7 @@ const { protect, authorize } = require("../middleware/auth");
 
 const router = express.Router();
 
-router.post("/register", register);
+router.post("/register", protect, authorize("admin"), register);
 router.post("/login", login);
 
 // مثال على حماية الداشبورد
