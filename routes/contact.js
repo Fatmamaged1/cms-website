@@ -5,6 +5,7 @@ const { validateRequest } = require('../middleware/validation');
 const ContactSubmission = require('../models/ContactSubmission');
 const { BadRequestError, NotFoundError } = require('../utils/errors');
 const { sendConfirmationEmail } = require('../services/sendMail');
+const { protect } = require('../middleware/auth');
 
 // Submit contact form
 router.post(
@@ -59,9 +60,7 @@ router.post(
 // Get contact submissions (admin only)
 router.get(
   '/',
-  [
-    // Add authentication and authorization middleware in a real app
-  ],
+  protect,
   async (req, res) => {
     const { page = 1, limit = 20, status } = req.query;
     const skip = (page - 1) * limit;
@@ -96,8 +95,8 @@ router.get(
 // Update submission status (admin only)
 router.patch(
   '/:id/status',
+  protect,
   [
-    // Add authentication and authorization middleware in a real app
     body('status').isIn(['new', 'in-progress', 'resolved', 'spam']),
     body('response').optional().isString().trim()
   ],
