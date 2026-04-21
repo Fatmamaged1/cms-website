@@ -24,6 +24,7 @@ const privacyRoutes = require('./routes/privacyPolicy');
 const { errorHandler } = require('./utils/errors');
 
 const app = express();
+app.set('trust proxy', 1);
 
 // ===== CORS =====
 const cors = require('cors');
