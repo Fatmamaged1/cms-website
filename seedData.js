@@ -395,8 +395,7 @@ async function seed() {
   // ──────────────────────────────────────────────
   // 7. CLIENTS (Who We Serve)
   // ──────────────────────────────────────────────
-  const ClientModel = mongoose.model('Client');
-  await ClientModel.insertMany([
+  await Client.insertMany([
     { name: 'Ministry of Health', logo: 'https://images.unsplash.com/photo-1538108149393-fbbd81895907?w=400&q=80', brief: 'Ministry of Health hospitals across the Kingdom of Saudi Arabia.' },
     { name: 'King Fahd Medical City', logo: 'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=400&q=80', brief: 'One of the largest and most advanced medical complexes in the Kingdom.' },
     { name: 'King Faisal Specialist Hospital & Research Centre', logo: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=400&q=80', brief: 'Premier quaternary care and research institution in Saudi Arabia.' },

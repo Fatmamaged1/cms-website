@@ -2,6 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const aboutController = require('../controllers/aboutController');
+const { protect, authorize } = require('../middleware/auth');
 const multer = require('multer');
 const path = require('path');
 
@@ -20,7 +21,7 @@ const upload = multer({ storage });
 // Routes
 //router.put('/update', upload.fields([{ name: 'image', maxCount: 1 }]), aboutController.updateAbout);
 router.get('/', aboutController.getAbout);
-router.put('/', upload.fields([{ name: 'image', maxCount: 1 }]), aboutController.updateAbout);
+router.put('/', protect, authorize('admin'), upload.fields([{ name: 'image', maxCount: 1 }]), aboutController.updateAbout);
 
 
 

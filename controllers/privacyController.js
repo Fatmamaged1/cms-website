@@ -13,7 +13,7 @@ exports.createPrivacy = async (req, res, next) => {
 exports.getAllPrivacy = async (req, res, next) => {
   try {
     const policies = await PrivacyPolicy.find({ isActive: true }).sort({ createdAt: -1 });
-    return res.json({ success: true, policies });
+    return res.json({ success: true, data: policies });
   } catch (error) {
     next(error);
   }

@@ -44,33 +44,29 @@ exports.getAllCareers = async (req, res, next) => {
       "language",
       "isActive",
       "slug",
-      "contentType"
+      "contentType",
+      "status",
+      "experienceLevel",
+      "applicationDeadline",
+      "description"
     ].join(" ");
 
     const [careers, total] = await Promise.all([
       Career.find(filter)
-
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(Number(limit))
-        .select(fieldsToSelect), // حدد الحقول
+        .select(fieldsToSelect)
+        .lean(),
       Career.countDocuments(filter),
     ]);
-const enhancedCareers = careers.map(career => {
-      const data = career.toObject();
-
-      // رابط كامل
-      data.url = `${req.protocol}://${req.get("host")}/uploads/images/${path.basename(data.url)}`;
-
-      return data;
-    });
 
     return res.json({
       success: true,
       total,
       currentPage: Number(page),
       pages: Math.ceil(total / limit),
-      data: enhancedCareers,
+      data: careers,
     });
   } catch (error) {
     next(error);

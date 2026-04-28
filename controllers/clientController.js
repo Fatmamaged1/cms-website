@@ -19,8 +19,13 @@ exports.createClient = async (req, res, next) => {
 
 exports.getAllClients = async (req, res, next) => {
     try {
-        const clients = await Client.find();
-        return res.json({ success: true, data: clients });
+        const { page = 1, limit = 50 } = req.query;
+        const skip = (page - 1) * Number(limit);
+        const [clients, total] = await Promise.all([
+            Client.find().sort({ createdAt: -1 }).skip(skip).limit(Number(limit)).lean(),
+            Client.countDocuments()
+        ]);
+        return res.json({ success: true, data: clients, meta: { page: Number(page), limit: Number(limit), total } });
     } catch (error) {
         next(error);
     }
