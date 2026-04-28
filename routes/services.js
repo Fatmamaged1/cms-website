@@ -3,6 +3,7 @@ const express = require('express');
 const router = express.Router();
 const { body, param, query } = require('express-validator');
 const { validateRequest } = require('../middleware/validation');
+const { protect, authorize } = require('../middleware/auth');
 const Service = require('../models/Service');
 const { NotFoundError, BadRequestError } = require('../utils/errors');
 const { handleUpload, fileService } = require('../services/upload');
@@ -117,7 +118,7 @@ router.get(
     }
 
     // Increment view count (in background)
-    Service.findByIdAndUpdate(service._id, { $inc: { views: 1 } }).exec();
+    Service.findByIdAndUpdate(service._id, { $inc: { views: 1 } }).catch(() => {});
 
     res.json({
       status: 'success',
@@ -130,8 +131,9 @@ router.get(
 // Create a new service (admin only)
 router.post(
     '/',
-    handleUpload('featuredImage'), // رفع صورة مميزة
-   // processContentUploads, // معالجة ملفات داخل content
+    protect,
+    authorize('admin'),
+    handleUpload('featuredImage'),
     [
       body('title').trim().notEmpty().withMessage('Title is required'),
       body('description').optional().isString().withMessage('Description is required'),
@@ -187,7 +189,9 @@ router.post(
 // Update a service (admin only)
 router.put(
   '/:id',
-  handleUpload('featuredImage'), // Handle featured image upload
+  protect,
+  authorize('admin'),
+  handleUpload('featuredImage'),
   processContentUploads, // Process any file uploads in content blocks
   [
     param('id').isMongoId().withMessage('Invalid service ID'),
@@ -260,7 +264,8 @@ router.put(
 );
 router.post(
     '/:serviceId/partners/:partnerId',
-    validateRequest,
+    protect,
+    authorize('admin'),
     async (req, res, next) => {
       try {
         const { serviceId, partnerId } = req.params;
@@ -300,6 +305,8 @@ async function addPartnersToService(serviceId, partnerId) {
 // Delete a service (admin only)
 router.delete(
   '/:id',
+  protect,
+  authorize('admin'),
   [
     param('id').isMongoId()
   ],

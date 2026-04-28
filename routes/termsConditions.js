@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const { protect } = require('../middleware/auth');
+const { protect, authorize } = require('../middleware/auth');
 const termsController = require('../controllers/termsController');
 
 router.get('/', termsController.getAllTerms);
 router.get('/:id', termsController.getTermsById);
-router.post('/', protect, termsController.createTerms);
-router.put('/:id', protect, termsController.updateTerms);
-router.delete('/:id', protect, termsController.deleteTerms);
+router.post('/', protect, authorize('admin'), termsController.createTerms);
+router.put('/:id', protect, authorize('admin'), termsController.updateTerms);
+router.delete('/:id', protect, authorize('admin'), termsController.deleteTerms);
 
 module.exports = router;

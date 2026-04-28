@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { body, param } = require('express-validator');
 const { validateRequest } = require('../middleware/validation');
+const { protect, authorize } = require('../middleware/auth');
 const pageController = require('../controllers/homeController');
 const { handleMultipleUploads } = require('../services/upload/multerConfig');
 
@@ -15,6 +16,8 @@ router.use((req, res, next) => {
 router.get('/home', pageController.getHomePage);
 router.put(
   '/home',
+  protect,
+  authorize('admin'),
   handleMultipleUploads([
     { name: 'sections.hero.backgroundImage', maxCount: 1 },
     { name: 'sections.about.image', maxCount: 1 },
@@ -37,6 +40,6 @@ router.get('/:pageType', [
 
 router.get('/id/:id', [param('id').isMongoId()], validateRequest, pageController.getPageById);
 
-router.delete('/:id', [param('id').isMongoId()], validateRequest, pageController.deactivatePage);
+router.delete('/:id', protect, authorize('admin'), [param('id').isMongoId()], validateRequest, pageController.deactivatePage);
 
 module.exports = router;

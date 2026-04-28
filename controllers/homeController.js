@@ -13,9 +13,6 @@ exports.getHomePage = async (req, res, next) => {
 exports.updateHomePage = async (req, res, next) => {
   try {
     const updatedPage = await PageService.updateHomePage(req.language, req.body, req.files, req);
-    console.log(updatedPage);
-    console.log(req.body);
-    console.log(req.files);
     res.status(200).json({
       status: 'success',
       message: 'Home page updated successfully',

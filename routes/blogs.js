@@ -5,7 +5,9 @@ const Blog = require('../models/Blog');
 const { withCache, clearCache } = require('../services/cache.js');
 const { BadRequestError, NotFoundError } = require('../utils/errors.js');
 const { handleUpload, fileService } = require('../services/upload');
-const { sendResponse } = require('../utils/response'); // ✅ NEW
+const { sendResponse } = require('../utils/response');
+const { protect, authorize } = require('../middleware/auth');
+const { validateRequest } = require('../middleware/validation');
 
 const router = express.Router();
 // ✅ Get all blog posts with only the fields you want
@@ -65,7 +67,7 @@ router.get('/:slug', async (req, res, next) => {
   }
 });
 
-router.post('/', handleUpload('featuredImage'), async (req, res, next) => {
+router.post('/', protect, authorize('admin'), handleUpload('featuredImage'), async (req, res, next) => {
   // تحويل الحقول JSON إذا كانت نصوص
   ['content', 'categories', 'tags'].forEach((field) => {
     if (typeof req.body[field] === 'string') {
@@ -121,7 +123,7 @@ router.post('/', handleUpload('featuredImage'), async (req, res, next) => {
 });
 
 // ✅ Update a blog post
-router.patch('/:id', handleUpload('featuredImage'), [
+router.patch('/:id', protect, authorize('admin'), handleUpload('featuredImage'), [
   param('id').isMongoId().withMessage('Invalid post ID'),
   body('title').optional().trim().notEmpty(),
   body('excerpt').optional().trim().notEmpty(),
@@ -177,8 +179,9 @@ router.patch('/:id', handleUpload('featuredImage'), [
 });
 
 // ✅ Delete a blog post
-router.delete('/:id', 
+router.delete('/:id', protect, authorize('admin'),
   [param('id').isMongoId().withMessage('Invalid post ID')],
+  validateRequest,
   async (req, res, next) => {
 
   try {

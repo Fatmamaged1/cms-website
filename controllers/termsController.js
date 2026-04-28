@@ -13,7 +13,7 @@ exports.createTerms = async (req, res, next) => {
 exports.getAllTerms = async (req, res, next) => {
   try {
     const terms = await TermsConditions.find({ isActive: true }).sort({ createdAt: -1 });
-    return res.json({ success: true, terms });
+    return res.json({ success: true, data: terms });
   } catch (error) {
     next(error);
   }
