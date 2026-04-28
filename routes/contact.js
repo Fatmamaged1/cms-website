@@ -5,7 +5,7 @@ const { validateRequest } = require('../middleware/validation');
 const ContactSubmission = require('../models/ContactSubmission');
 const { BadRequestError, NotFoundError } = require('../utils/errors');
 const { sendConfirmationEmail } = require('../services/sendMail');
-const { protect, authorize } = require('../middleware/auth');
+const { protect } = require('../middleware/auth');
 
 // Submit contact form
 router.post(
@@ -61,7 +61,6 @@ router.post(
 router.get(
   '/',
   protect,
-  authorize('admin'),
   async (req, res) => {
     const { page = 1, limit = 20, status } = req.query;
     const skip = (page - 1) * limit;
@@ -97,7 +96,6 @@ router.get(
 router.patch(
   '/:id/status',
   protect,
-  authorize('admin'),
   [
     body('status').isIn(['new', 'in-progress', 'resolved', 'spam']),
     body('response').optional().isString().trim()
@@ -129,6 +127,145 @@ router.patch(
 
     res.json({
       status: 'success',
+      data: submission
+    });
+  }
+);
+
+// Get single contact submission (admin only)
+router.get(
+  '/:id',
+  protect,
+  async (req, res) => {
+    const { id } = req.params;
+
+    const submission = await ContactSubmission.findById(id).lean();
+
+    if (!submission) {
+      throw new NotFoundError('Submission not found');
+    }
+
+    res.json({
+      status: 'success',
+      data: submission
+    });
+  }
+);
+
+// Delete contact submission (admin only)
+router.delete(
+  '/:id',
+  protect,
+  async (req, res) => {
+    const { id } = req.params;
+
+    const submission = await ContactSubmission.findByIdAndDelete(id);
+
+    if (!submission) {
+      throw new NotFoundError('Submission not found');
+    }
+
+    res.json({
+      status: 'success',
+      message: 'Contact submission deleted successfully'
+    });
+  }
+);
+
+// Mark submission as read (admin only)
+router.patch(
+  '/:id',
+  protect,
+  [
+    body('isRead').optional().isBoolean(),
+    body('read').optional().isBoolean()
+  ],
+  validateRequest,
+  async (req, res) => {
+    const { id } = req.params;
+    // Support both 'read' and 'isRead' field names for compatibility
+    const isRead = req.body.isRead ?? req.body.read;
+
+    const updateData = {};
+    if (typeof isRead === 'boolean') {
+      updateData.isRead = isRead;
+      updateData.readAt = isRead ? new Date() : null;
+    }
+
+    const submission = await ContactSubmission.findByIdAndUpdate(
+      id,
+      updateData,
+      { new: true }
+    );
+
+    if (!submission) {
+      throw new NotFoundError('Submission not found');
+    }
+
+    res.json({
+      status: 'success',
+      data: submission
+    });
+  }
+);
+
+// Reply to contact submission (admin only)
+router.post(
+  '/:id/reply',
+  protect,
+  [
+    body('message').optional().isString().trim(),
+    body('content').optional().isString().trim(),
+    body('subject').optional().isString().trim()
+  ],
+  validateRequest,
+  async (req, res) => {
+    const { id } = req.params;
+    // Support both 'message' and 'content' field names for compatibility
+    const message = req.body.message || req.body.content;
+    const { subject } = req.body;
+
+    if (!message) {
+      return res.status(400).json({ status: 'error', message: 'Reply message is required' });
+    }
+
+    const submission = await ContactSubmission.findById(id);
+
+    if (!submission) {
+      throw new NotFoundError('Submission not found');
+    }
+
+    // Update submission with reply info
+    submission.response = {
+      message,
+      respondedBy: req.user._id,
+      respondedAt: new Date()
+    };
+    submission.status = 'resolved';
+    await submission.save();
+
+    // Send reply email
+    try {
+      await sendConfirmationEmail(
+        submission.email,
+        `
+        <p>Dear ${submission.name},</p>
+        <p>Thank you for reaching out to us. Here is our response to your inquiry:</p>
+        <div style="background-color: #f0f8ff; padding: 16px; border-radius: 8px; margin: 16px 0; border-left: 4px solid #007aff;">
+          <p style="margin: 0;">${message}</p>
+        </div>
+        <p>If you have any further questions, please don't hesitate to contact us again.</p>
+        <p>Best regards,<br>PREMED Team</p>
+        `
+      );
+    } catch (err) {
+      console.error('Error sending reply email:', err);
+      // Don't fail the request if email fails
+    }
+
+    res.json({
+      status: 'success',
+      message: 'Reply sent successfully',
       data: submission
     });
   }

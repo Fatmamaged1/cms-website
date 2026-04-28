@@ -1,6 +1,6 @@
 const express = require("express");
 const { body } = require("express-validator");
-const { register, login } = require("../controllers/authController");
+const { register, login, forgotPassword, resetPassword } = require("../controllers/authController");
 const { protect, authorize } = require("../middleware/auth");
 const { validateRequest } = require("../middleware/validation");
 
@@ -16,6 +16,9 @@ router.post("/login", [
   body("email").isEmail().normalizeEmail().withMessage("Valid email is required"),
   body("password").notEmpty().withMessage("Password is required"),
 ], validateRequest, login);
+
+router.post("/forgot-password", forgotPassword);
+router.post("/reset-password", resetPassword);
 
 // مثال على حماية الداشبورد
 router.get("/dashboard", protect, authorize("admin"), (req, res) => {

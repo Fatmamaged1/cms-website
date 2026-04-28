@@ -351,9 +351,71 @@ async function sendNewServicesEachMonthToAllContacts(contactEmails, services) {
   }
 }
 
+/**
+ * Send password reset email
+ * @param {string} recipientEmail
+ * @param {string} resetUrl - Password reset URL with token
+ */
+async function sendPasswordResetEmail(recipientEmail, resetUrl) {
+  const mailOptions = {
+    from: process.env.GMAIL_USER,
+    to: recipientEmail,
+    subject: 'PREMED - Password Reset Request',
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f5f5f7; margin: 0; padding: 0; color: #1d1d1f; }
+          .container { width: 100%; max-width: 600px; margin: 40px auto; background-color: #fff; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.05); padding: 24px; box-sizing: border-box; }
+          .header { text-align: center; padding-bottom: 24px; border-bottom: 1px solid #e3e3e3; }
+          .header h1 { font-size: 28px; font-weight: 600; color: #333; margin: 0; }
+          .content { padding: 24px 0; text-align: center; }
+          .content p { font-size: 17px; line-height: 1.6; color: #555; margin: 0 0 16px; }
+          .btn { display: inline-block; padding: 14px 32px; background-color: #007aff; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; margin: 16px 0; }
+          .btn:hover { background-color: #005ce6; }
+          .warning { background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 16px; margin: 16px 0; }
+          .warning p { color: #856404; margin: 0; font-size: 14px; }
+          .footer { text-align: center; padding-top: 24px; border-top: 1px solid #e3e3e3; color: #888; font-size: 13px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header"><h1>Password Reset Request</h1></div>
+          <div class="content">
+            <p>You requested to reset your password for your PREMED account.</p>
+            <p>Click the button below to reset your password:</p>
+            <a href="${resetUrl}" class="btn">Reset Password</a>
+            <div class="warning">
+              <p>⚠️ This link will expire in 30 minutes. If you didn't request this, please ignore this email.</p>
+            </div>
+            <p style="font-size: 14px; color: #888;">If the button doesn't work, copy and paste this link in your browser:</p>
+            <p style="font-size: 12px; color: #007aff; word-break: break-all;">${resetUrl}</p>
+          </div>
+          <div class="footer">
+            <p>PREMED Solutions</p>
+            <p>Riyadh, Saudi Arabia</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `
+  };
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Password reset email sent:', info.response);
+    return info;
+  } catch (err) {
+    console.error('Error sending password reset email:', err);
+    throw err;
+  }
+}
+
 module.exports = {
   sendConfirmationEmail,
   sendCareerApplicationConfirmationEmail,
   sendNewBlogsEachWeekToAllContacts,
-  sendNewServicesEachMonthToAllContacts
+  sendNewServicesEachMonthToAllContacts,
+  sendPasswordResetEmail
 };

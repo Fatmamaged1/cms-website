@@ -1,8 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const careerController = require("../controllers/careerController");
-const { uploadFilePDF } = require("../services/upload");
-const { protect, authorize } = require("../middleware/auth");
+const{ uploadFilePDF} = require("../services/upload");
 
 // ============================
 // 🔹 GET: جميع الوظائف مع فلاتر
@@ -17,7 +16,7 @@ router.get("/:idOrSlug", careerController.getCareerByIdOrSlug);
 // ============================
 // 🔹 POST: إنشاء وظيفة جديدة
 // ============================
-router.post("/", protect, authorize("admin"), careerController.createCareer);
+router.post("/", careerController.createCareer);
 
 // =======================================
 // 🔹 POST: تقديم طلب توظيف على وظيفة معينة
@@ -31,16 +30,21 @@ router.post(
 // ============================
 // 🔹 PUT: تحديث وظيفة
 // ============================
-router.put("/:id", protect, authorize("admin"), careerController.updateCareer);
+router.put("/:id",uploadFilePDF("resume"), careerController.updateCareer);
 
 // ============================
 // 🔹 DELETE: حذف وظيفة
 // ============================
-router.delete("/:id", protect, authorize("admin"), careerController.deleteCareer);
+router.delete("/:id", careerController.deleteCareer);
 
 // ============================
 // 🔹 GET: جميع الطلبات
 // ============================
-router.get("/:id/applications", protect, authorize("admin"), careerController.getAllApplicationsByCarrerId);
+router.get("/:id/applications", careerController.getAllApplicationsByCarrerId);
+
+// ============================
+// 🔹 PATCH: تحديث حالة الطلب
+// ============================
+router.patch("/:id/applications/:applicationId", careerController.updateApplicationStatus);
 
 module.exports = router;

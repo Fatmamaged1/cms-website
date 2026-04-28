@@ -4,6 +4,7 @@ const path = require("path");
 const mongoose = require("mongoose");
 const slugify = require("slugify");
 const { sendCareerApplicationConfirmationEmail } = require("../services/sendMail");
+const { APPLICATION_STATUS } = require("../constants/applicationStatus");
 // إنشاء وظيفة جديدة
 exports.createCareer = async (req, res, next) => {
   try {
@@ -44,29 +45,33 @@ exports.getAllCareers = async (req, res, next) => {
       "language",
       "isActive",
       "slug",
-      "contentType",
-      "status",
-      "experienceLevel",
-      "applicationDeadline",
-      "description"
+      "contentType"
     ].join(" ");
 
     const [careers, total] = await Promise.all([
       Career.find(filter)
+
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(Number(limit))
-        .select(fieldsToSelect)
-        .lean(),
+        .select(fieldsToSelect), // حدد الحقول
       Career.countDocuments(filter),
     ]);
+const enhancedCareers = careers.map(career => {
+      const data = career.toObject();
+
+      // رابط كامل
+      data.url = `${req.protocol}://${req.get("host")}/uploads/images/${path.basename(data.url)}`;
+
+      return data;
+    });
 
     return res.json({
       success: true,
       total,
       currentPage: Number(page),
       pages: Math.ceil(total / limit),
-      data: careers,
+      data: enhancedCareers,
     });
   } catch (error) {
     next(error);
@@ -256,6 +261,59 @@ exports.getAllApplicationsByCarrerId = async (req, res, next) => {
       success: true,
       count: enhancedApplications.length,
       data: enhancedApplications
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Update application status
+exports.updateApplicationStatus = async (req, res, next) => {
+  try {
+    const { id, applicationId } = req.params;
+    const { status, notes } = req.body;
+
+    // Validate status
+    const validStatuses = Object.values(APPLICATION_STATUS);
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid status. Valid values are: ${validStatuses.join(", ")}`
+      });
+    }
+
+    // Check if career exists
+    const career = await Career.findById(id);
+    if (!career) {
+      return res.status(404).json({ success: false, message: "Career not found" });
+    }
+
+    // Find and update application
+    const application = await JobApplication.findOne({ _id: applicationId, job: id });
+    if (!application) {
+      return res.status(404).json({ success: false, message: "Application not found" });
+    }
+
+    // Add to status history
+    application.statusHistory.push({
+      status: application.status,
+      changedAt: new Date(),
+      changedBy: req.user?._id || null,
+      notes: notes || `Status changed from ${application.status} to ${status}`
+    });
+
+    // Update current status
+    application.status = status;
+    await application.save();
+
+    return res.json({
+      success: true,
+      message: "Application status updated successfully",
+      data: {
+        id: application._id,
+        status: application.status,
+        statusHistory: application.statusHistory
+      }
     });
   } catch (error) {
     next(error);
