@@ -36,6 +36,10 @@ app.use(cors({
   origin: function (origin, callback) {
     // Allow requests with no origin (mobile apps, curl, etc.)
     if (!origin) return callback(null, true);
+    // Allow any localhost / 127.0.0.1 origin
+    if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) return callback(null, true);
+    // Allow any Vercel preview/deploy domain
+    if (/\.vercel\.app$/.test(origin)) return callback(null, true);
     if (allowedOrigins.indexOf(origin) === -1) {
       return callback(new Error('Not allowed by CORS'), false);
     }
@@ -93,8 +97,8 @@ app.use(hpp());
 if (process.env.NODE_ENV === 'development') app.use(morgan('dev'));
 
 // ===== Body Parser =====
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10kb' }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // ===== Security Middleware =====
 app.use(mongoSanitize()); // NoSQL injection
