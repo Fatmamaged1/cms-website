@@ -161,6 +161,13 @@ class PageService {
 
     let homePage = await PageContent.findOne({ pageType: 'home', language });
 
+    // Map dashboard field names to proper paths
+    const fieldNameMapping = {
+      'hero_backgroundImage': 'hero.backgroundImage',
+      'about_image': 'about.image',
+      'services_backgroundImage': 'services.backgroundImage'
+    };
+
     // Handle uploaded files dynamically
     if (files) {
       const protocol = req.protocol;
@@ -169,7 +176,8 @@ class PageService {
       for (const [field, fileArr] of Object.entries(files)) {
         if (Array.isArray(fileArr) && fileArr.length > 0) {
           const file = fileArr[0];
-          const fieldPath = field.replace(/\[/g, '.').replace(/\]/g, '');
+          // Map dashboard field names or convert bracket notation
+          let fieldPath = fieldNameMapping[field] || field.replace(/\[/g, '.').replace(/\]/g, '');
           const url = `${protocol}://${host}/uploads/${file.filename}`;
 
           // Save as object with metadata
@@ -183,28 +191,6 @@ class PageService {
         }
       }
     }
-    for (const [field, fileArr] of Object.entries(files)) {
-        if (Array.isArray(fileArr) && fileArr.length > 0) {
-          const file = fileArr[0];
-          const fieldPath = field.replace(/\[/g, '.').replace(/\]/g, '');
-          const url = `${req.protocol}://${req.get('host')}/uploads/${file.filename}`;
-      
-          // Determine section type (hero or about, etc.)
-          if (fieldPath.includes('hero.backgroundImage') || fieldPath.includes('about.image')) {
-            // Store as object with metadata
-            _.set(sections, fieldPath, {
-              url,
-              alt: file.originalname || '',
-              size: file.size || 0,
-              mimeType: file.mimetype || '',
-              uploadedAt: new Date()
-            });
-          } else {
-            // For other fields, store as URL string
-            _.set(sections, fieldPath, url);
-          }
-        }
-      }
       
     // Merge with existing or default sections
     const mergedSections = _.merge(

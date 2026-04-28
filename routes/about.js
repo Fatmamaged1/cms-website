@@ -19,9 +19,14 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // Routes
-//router.put('/update', upload.fields([{ name: 'image', maxCount: 1 }]), aboutController.updateAbout);
 router.get('/', aboutController.getAbout);
-router.put('/', protect, authorize('admin'), upload.fields([{ name: 'image', maxCount: 1 }]), aboutController.updateAbout);
+// Support both old 'image' field and new dashboard fields (proudImage, missionImage, visionImage)
+router.put('/', protect, authorize('admin'), upload.fields([
+  { name: 'image', maxCount: 1 },
+  { name: 'proudImage', maxCount: 1 },
+  { name: 'missionImage', maxCount: 1 },
+  { name: 'visionImage', maxCount: 1 }
+]), aboutController.updateAbout);
 
 
 
