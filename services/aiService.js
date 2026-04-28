@@ -1,12 +1,33 @@
 /**
- * AI Service - OpenAI Integration for Content Generation
+ * AI Service - Google Gemini Integration for Content Generation
  */
-const { OpenAI } = require('openai');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Initialize Gemini client
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+
+/**
+ * Helper to generate content with Gemini and parse JSON response
+ */
+async function generateWithGemini(systemPrompt, userPrompt) {
+  const fullPrompt = `${systemPrompt}\n\n${userPrompt}`;
+  const result = await model.generateContent(fullPrompt);
+  const response = result.response;
+  const text = response.text();
+
+  // Extract JSON from response (Gemini may wrap in markdown code blocks)
+  const jsonMatch = text.match(/```json\n?([\s\S]*?)\n?```/) ||
+                    text.match(/```\n?([\s\S]*?)\n?```/) ||
+                    text.match(/\{[\s\S]*\}/);
+
+  if (jsonMatch) {
+    const jsonStr = jsonMatch[1] || jsonMatch[0];
+    return JSON.parse(jsonStr);
+  }
+
+  return JSON.parse(text);
+}
 
 /**
  * Generate blog content using AI
@@ -37,17 +58,7 @@ async function generateBlogContent(prompt, language = 'en') {
     }
   }`;
 
-  const response = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
-    messages: [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: userPrompt }
-    ],
-    temperature: 0.7,
-    response_format: { type: 'json_object' }
-  });
-
-  return JSON.parse(response.choices[0].message.content);
+  return generateWithGemini(systemPrompt, userPrompt);
 }
 
 /**
@@ -92,17 +103,7 @@ async function generateServiceContent(prompt, language = 'en') {
     }
   }`;
 
-  const response = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
-    messages: [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: userPrompt }
-    ],
-    temperature: 0.7,
-    response_format: { type: 'json_object' }
-  });
-
-  return JSON.parse(response.choices[0].message.content);
+  return generateWithGemini(systemPrompt, userPrompt);
 }
 
 /**
@@ -133,17 +134,7 @@ async function generateCareerContent(prompt, language = 'en') {
     }
   }`;
 
-  const response = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
-    messages: [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: userPrompt }
-    ],
-    temperature: 0.7,
-    response_format: { type: 'json_object' }
-  });
-
-  return JSON.parse(response.choices[0].message.content);
+  return generateWithGemini(systemPrompt, userPrompt);
 }
 
 /**
@@ -186,17 +177,7 @@ async function generateAboutContent(prompt, language = 'en') {
     ]
   }`;
 
-  const response = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
-    messages: [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: userPrompt }
-    ],
-    temperature: 0.7,
-    response_format: { type: 'json_object' }
-  });
-
-  return JSON.parse(response.choices[0].message.content);
+  return generateWithGemini(systemPrompt, userPrompt);
 }
 
 module.exports = {
