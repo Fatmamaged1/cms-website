@@ -21,6 +21,7 @@ const authRoutes = require("./routes/auth");
 const testimonialRoutes = require('./routes/testimonials');
 const termsRoutes = require('./routes/termsConditions');
 const privacyRoutes = require('./routes/privacyPolicy');
+const aiRoutes = require('./routes/ai');
 const { errorHandler } = require('./utils/errors');
 
 const app = express();
@@ -36,10 +37,6 @@ app.use(cors({
   origin: function (origin, callback) {
     // Allow requests with no origin (mobile apps, curl, etc.)
     if (!origin) return callback(null, true);
-    // Allow any localhost / 127.0.0.1 origin
-    if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) return callback(null, true);
-    // Allow any Vercel preview/deploy domain
-    if (/\.vercel\.app$/.test(origin)) return callback(null, true);
     if (allowedOrigins.indexOf(origin) === -1) {
       return callback(new Error('Not allowed by CORS'), false);
     }
@@ -97,8 +94,8 @@ app.use(hpp());
 if (process.env.NODE_ENV === 'development') app.use(morgan('dev'));
 
 // ===== Body Parser =====
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
 // ===== Security Middleware =====
 app.use(mongoSanitize()); // NoSQL injection
@@ -111,7 +108,8 @@ mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('✅ MongoDB connected successfully'))
   .catch(err => {
     console.error('❌ MongoDB connection error:', err.message);
-    process.exit(1);
+    console.error('⚠️  Server will continue running but database operations will fail.');
+    console.error('💡 Please whitelist your IP in MongoDB Atlas: https://cloud.mongodb.com');
   });
 
 // ===== API Routes =====
@@ -127,6 +125,7 @@ app.use('/api/v1/clients', clientRoutes);
 app.use('/api/v1/testimonials', testimonialRoutes);
 app.use('/api/v1/terms-conditions', termsRoutes);
 app.use('/api/v1/privacy-policy', privacyRoutes);
+app.use('/api/v1/ai', aiRoutes);
 
 // ===== Static Files =====
 app.use(express.static(path.join(__dirname,'public/uploads/images')));

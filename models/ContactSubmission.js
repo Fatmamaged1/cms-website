@@ -40,6 +40,14 @@ const contactSubmissionSchema = new mongoose.Schema({
     enum: ['new', 'in-progress', 'resolved', 'spam'],
     default: 'new'
   },
+  isRead: {
+    type: Boolean,
+    default: false
+  },
+  readAt: {
+    type: Date,
+    default: null
+  },
   
   // Response tracking
   response: {
