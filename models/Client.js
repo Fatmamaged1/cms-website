@@ -29,6 +29,6 @@ const clientSchema = new mongoose.Schema({
     
     
 })
-clientSchema.index({ slug: 1, name: 1 ,required: true}, { unique: true });
+clientSchema.index({ name: 1 }, { unique: true });
 
-exports.Client = mongoose.model('Client', clientSchema);
+module.exports = mongoose.model('Client', clientSchema);
