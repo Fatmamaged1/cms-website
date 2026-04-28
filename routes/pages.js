@@ -19,9 +19,14 @@ router.put(
   protect,
   authorize('admin'),
   handleMultipleUploads([
+    // Original field names
     { name: 'sections.hero.backgroundImage', maxCount: 1 },
     { name: 'sections.about.image', maxCount: 1 },
     { name: 'sections.services.backgroundImage', maxCount: 1 },
+    // Dashboard field names (with underscore notation)
+    { name: 'hero_backgroundImage', maxCount: 1 },
+    { name: 'about_image', maxCount: 1 },
+    { name: 'services_backgroundImage', maxCount: 1 },
   ]),
   [
     body('title').optional().isString(),
