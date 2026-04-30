@@ -109,15 +109,11 @@ class PageService {
       // Get about section from AboutService
       const about = await AboutService.getAbout(language);
 
-      // Get all active services if none are featured
-      let featuredServices = homePage.sections?.services?.featuredServices || [];
-      if (!featuredServices || featuredServices.length === 0) {
-        featuredServices = await Service.find({ isActive: true, language })
-          .select('title subtitle icon thumbnail slug featuredImage')
-          .limit(6) // Limit to 6 services
-          .sort({ createdAt: -1 }) // Get most recent first
-          .lean();
-      }
+      // Get all active services
+      const services = await Service.find({ isActive: true, language })
+        .select('title subtitle icon thumbnail slug featuredImage')
+        .sort({ createdAt: -1 })
+        .lean();
 
       // Get latest blog posts if none are featured
       let featuredBlogs = homePage.sections?.blog?.featuredBlogs || [];
