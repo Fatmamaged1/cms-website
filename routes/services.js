@@ -9,6 +9,57 @@ const { NotFoundError, BadRequestError } = require('../utils/errors');
 const { handleUpload, fileService } = require('../services/upload');
 const { processContentUploads, cleanupOrphanedFiles } = require('../middleware/contentUpload');
 const Partner = require('../models/Partner');
+
+async function addPartnersToService(serviceId, partnerId) {
+  try {
+    const partner = await Partner.findById(partnerId);
+    if (!partner) {
+      throw new NotFoundError('Partner not found');
+    }
+    const service = await Service.findById(serviceId);
+    if (!service) {
+      throw new NotFoundError('Service not found');
+    }
+    // Check if already linked
+    if (!service.partners.includes(partnerId)) {
+      service.partners.push(partnerId);
+      await service.save();
+    }
+    // Check if already in partner's services
+    if (!partner.services.includes(serviceId)) {
+      partner.services.push(serviceId);
+      await partner.save();
+    }
+    return service;
+  } catch (error) {
+    console.error('Error adding partner to service:', error);
+    return null;
+  }
+}
+
+async function removePartnerFromService(serviceId, partnerId) {
+  try {
+    const partner = await Partner.findById(partnerId);
+    if (!partner) {
+      throw new NotFoundError('Partner not found');
+    }
+    const service = await Service.findById(serviceId);
+    if (!service) {
+      throw new NotFoundError('Service not found');
+    }
+    // Remove partner from service's partners array
+    service.partners = service.partners.filter(p => p.toString() !== partnerId);
+    await service.save();
+    // Remove service from partner's services array
+    partner.services = partner.services.filter(s => s.toString() !== serviceId);
+    await partner.save();
+    return service;
+  } catch (error) {
+    console.error('Error removing partner from service:', error);
+    return null;
+  }
+}
+
 // Middleware to set language
 const setLanguage = (req, res, next) => {
   req.language = req.query.lang || req.acceptsLanguages(['en', 'ar']) || 'en';
@@ -282,6 +333,28 @@ router.post(
       }
     }
   );
+
+router.delete(
+  '/:serviceId/partners/:partnerId',
+  protect,
+  authorize('admin'),
+  async (req, res, next) => {
+    try {
+      const { serviceId, partnerId } = req.params;
+      const service = await removePartnerFromService(serviceId, partnerId);
+      if (!service) {
+        throw new NotFoundError('Service not found');
+      }
+      res.json({
+        success: true,
+        data: service
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
 async function addPartnersToService(serviceId, partnerId) {
     try {
       const partner = await Partner.findById(partnerId);
@@ -292,16 +365,46 @@ async function addPartnersToService(serviceId, partnerId) {
       if (!service) {
         throw new NotFoundError('Service not found');
       }
-      service.partners.push(partnerId);
+      // Check if already linked
+      if (!service.partners.includes(partnerId)) {
+        service.partners.push(partnerId);
+        await service.save();
+      }
+      // Check if already in partner's services
+      if (!partner.services.includes(serviceId)) {
+        partner.services.push(serviceId);
+        await partner.save();
+      }
+      return service;
+  } catch (error) {
+    console.error('Error adding partner to service:', error);
+    return null;
+  }
+}
+
+async function removePartnerFromService(serviceId, partnerId) {
+    try {
+      const partner = await Partner.findById(partnerId);
+      if (!partner) {
+        throw new NotFoundError('Partner not found');
+      }
+      const service = await Service.findById(serviceId);
+      if (!service) {
+        throw new NotFoundError('Service not found');
+      }
+      // Remove partner from service's partners array
+      service.partners = service.partners.filter(p => p.toString() !== partnerId);
       await service.save();
-      partner.services.push(serviceId);
+      // Remove service from partner's services array
+      partner.services = partner.services.filter(s => s.toString() !== serviceId);
       await partner.save();
       return service;
     } catch (error) {
-      console.error('Error adding partner to service:', error);
+      console.error('Error removing partner from service:', error);
       return null;
     }
   }
+
 // Delete a service (admin only)
 router.delete(
   '/:id',
