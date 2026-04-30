@@ -137,11 +137,11 @@ class PageService {
           },
           services: {
             ...(homePage.sections?.services || DEFAULT_HOME_STRUCTURE.sections.services),
-            featuredServices
+            featuredServices: services
           },
           // Keep other sections as is
           clients: DEFAULT_HOME_STRUCTURE.sections.clients,
-          features:homePage.sections?.features || DEFAULT_HOME_STRUCTURE.sections.features
+          features: homePage.sections?.features || DEFAULT_HOME_STRUCTURE.sections.features
         }
       };
     } catch (error) {
