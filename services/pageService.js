@@ -112,7 +112,7 @@ class PageService {
       // Get all active services
       const services = await Service.find({ isActive: true, language })
         .select('title subtitle icon thumbnail slug featuredImage')
-        .sort({ createdAt: -1 })
+        .sort({ order: 1 })
         .lean();
 
       // Get latest blog posts if none are featured
