@@ -23,11 +23,11 @@ const pageContentSchema = new mongoose.Schema({
     about: {
       title: String,
       subtitle: String,
+      description: String,
       content: String,
-      features: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Feature'
-      }],
+      // Inline features (the dashboard sends [{ title, content }, ...]).
+      // Kept as Mixed so we don't require a separate Feature collection.
+      features: { type: mongoose.Schema.Types.Mixed, default: [] },
       image: String,
       mainImage: String,
       secondaryImage: String
