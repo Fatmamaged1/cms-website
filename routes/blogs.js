@@ -40,23 +40,30 @@ router.get('/', async (req, res, next) => {
 });
 
 
-// ✅ Get a single blog post by slug
-router.get('/:slug', async (req, res, next) => {
+// ✅ Get a single blog post by id OR slug
+// Admin dashboard passes Mongo ObjectId; public site passes slug.
+const isBlogObjectId = (v) => /^[0-9a-fA-F]{24}$/.test(v);
+
+router.get('/:idOrSlug', async (req, res, next) => {
   try {
-    const { slug } = req.params;
+    const { idOrSlug } = req.params;
     const { language = 'en' } = req.query;
 
+    const lookup = isBlogObjectId(idOrSlug)
+      ? { _id: idOrSlug }
+      : { slug: idOrSlug, language };
+
     const post = await withCache(
-      `blog:${slug}:${language}`,
+      `blog:${idOrSlug}:${language}`,
       () => Blog.findOneAndUpdate(
-        { slug, language },
+        lookup,
         { $inc: { views: 1 } },
         { new: true }
       ).lean(),
       3600
     );
 
-    if (!post) return next(new NotFoundError('No blog post found with that slug', 404));
+    if (!post) return next(new NotFoundError('No blog post found', 404));
 
     sendResponse(res, {
       message: 'Blog post retrieved successfully',

@@ -141,41 +141,47 @@ router.get(
 );
 
 
-// Get service by slug
+// Get service by id OR slug (admin sends ObjectId from the dashboard,
+// public site sends slug). Crashing on the lookup used to take the
+// Node worker down and cascade 502s across the whole API.
+const isObjectId = (v) => /^[0-9a-fA-F]{24}$/.test(v);
+
 router.get(
-  '/:slug',
+  '/:idOrSlug',
   [
-    param('slug').isString().trim().notEmpty(),
+    param('idOrSlug').isString().trim().notEmpty(),
     setLanguage
   ],
   validateRequest,
-  async (req, res) => {
-    const { slug } = req.params;
-    const { language } = req;
+  async (req, res, next) => {
+    try {
+      const { idOrSlug } = req.params;
+      const { language } = req;
 
-    const service = await Service.findOne({
-      slug,
-      language,
-      isActive: true
-    })
-   // .populate('categories', 'name slug')
-    .populate('relatedServices', 'title slug excerpt thumbnail')
-    .lean();
+      const lookup = isObjectId(idOrSlug)
+        ? { _id: idOrSlug }
+        : { slug: idOrSlug, language, isActive: true };
 
-    if (!service) 
-      {
-      console.log('Service not found 1');
-      throw new NotFoundError('Service not found');
+      const service = await Service.findOne(lookup)
+        .populate('relatedServices', 'title slug excerpt thumbnail')
+        .lean();
+
+      if (!service) {
+        throw new NotFoundError('Service not found');
+      }
+
+      // Increment view count in background, only if we have a real doc
+      Service.findByIdAndUpdate(service._id, { $inc: { views: 1 } })
+        .catch((err) => console.error('view count update failed', err));
+
+      res.json({
+        status: 'success',
+        message: 'Service retrieved successfully',
+        data: service
+      });
+    } catch (err) {
+      next(err);
     }
-
-    // Increment view count (in background)
-    Service.findByIdAndUpdate(service._id, { $inc: { views: 1 } }).catch(() => {});
-
-    res.json({
-      status: 'success',
-      message: 'Service retrieved successfully',
-      data: service
-    });
   }
 );
 
