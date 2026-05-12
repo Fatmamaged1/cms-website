@@ -1,50 +1,32 @@
 const express = require("express");
 const router = express.Router();
 const careerController = require("../controllers/careerController");
-const{ uploadFilePDF} = require("../services/upload");
+const { uploadFilePDF } = require("../services/upload");
+const { protect, authorize } = require("../middleware/auth");
 
-// ============================
-// 🔹 GET: جميع الوظائف مع فلاتر
-// ============================
+// Public reads
 router.get("/", careerController.getAllCareers);
-
-// ============================
-// 🔹 GET: وظيفة واحدة عبر ID أو Slug
-// ============================
 router.get("/:idOrSlug", careerController.getCareerByIdOrSlug);
 
-// ============================
-// 🔹 POST: إنشاء وظيفة جديدة
-// ============================
-router.post("/", careerController.createCareer);
-
-// =======================================
-// 🔹 POST: تقديم طلب توظيف على وظيفة معينة
-// =======================================
+// Public: anyone can apply
 router.post(
   "/:id/apply",
-    uploadFilePDF("resume"), // ⚠️ تأكد أن اسم الحقل في الفورم هو "resume"
+  uploadFilePDF("resume"),
   careerController.applyToCareer
 );
 
-// ============================
-// 🔹 PUT: تحديث وظيفة
-// ============================
-router.put("/:id",uploadFilePDF("resume"), careerController.updateCareer);
+// Admin CRUD
+router.post("/", protect, authorize("admin"), careerController.createCareer);
+router.put("/:id", protect, authorize("admin"), uploadFilePDF("resume"), careerController.updateCareer);
+router.delete("/:id", protect, authorize("admin"), careerController.deleteCareer);
 
-// ============================
-// 🔹 DELETE: حذف وظيفة
-// ============================
-router.delete("/:id", careerController.deleteCareer);
-
-// ============================
-// 🔹 GET: جميع الطلبات
-// ============================
-router.get("/:id/applications", careerController.getAllApplicationsByCarrerId);
-
-// ============================
-// 🔹 PATCH: تحديث حالة الطلب
-// ============================
-router.patch("/:id/applications/:applicationId", careerController.updateApplicationStatus);
+// Admin: applications inbox
+router.get("/:id/applications", protect, authorize("admin"), careerController.getAllApplicationsByCarrerId);
+router.patch(
+  "/:id/applications/:applicationId",
+  protect,
+  authorize("admin"),
+  careerController.updateApplicationStatus
+);
 
 module.exports = router;
