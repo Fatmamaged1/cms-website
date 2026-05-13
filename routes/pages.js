@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { body, param } = require('express-validator');
-const { validateRequest } = require('../middleware/validation');
+const { validateRequest, parseFormDataJson } = require('../middleware/validation');
 const { protect, authorize } = require('../middleware/auth');
 const pageController = require('../controllers/homeController');
 const { handleMultipleUploads } = require('../services/upload/multerConfig');
@@ -28,6 +28,7 @@ router.put(
     { name: 'about_image', maxCount: 1 },
     { name: 'services_backgroundImage', maxCount: 1 },
   ]),
+  parseFormDataJson(['sections', 'seo']), // Parse JSON strings from FormData before validation
   [
     body('title').optional().isString(),
     body('seo').optional().isObject(),
