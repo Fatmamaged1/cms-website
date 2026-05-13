@@ -16,7 +16,8 @@ const pageContentSchema = new mongoose.Schema({
     hero: {
       title: String,
       subtitle: String,
-      backgroundImage: String,
+      // Mixed to support both string URL and object { url, alt, size, mimeType, uploadedAt }
+      backgroundImage: { type: mongoose.Schema.Types.Mixed },
       ctaText: String,
       ctaLink: String
     },
@@ -28,7 +29,8 @@ const pageContentSchema = new mongoose.Schema({
       // Inline features (the dashboard sends [{ title, content }, ...]).
       // Kept as Mixed so we don't require a separate Feature collection.
       features: { type: mongoose.Schema.Types.Mixed, default: [] },
-      image: String,
+      // Mixed to support both string URL and object { url, alt, size, mimeType, uploadedAt }
+      image: { type: mongoose.Schema.Types.Mixed },
       mainImage: String,
       secondaryImage: String
     },

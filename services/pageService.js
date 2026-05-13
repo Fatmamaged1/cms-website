@@ -81,6 +81,8 @@ class PageService {
   // ------------------ GET HOME PAGE ------------------
   static async getHomePage(language) {
     try {
+      console.log('[getHomePage] Fetching home page for language:', language);
+
       // First try to get the home page with populated data
       let homePage = await PageContent.findOne({ pageType: 'home', language })
         .populate({
@@ -94,6 +96,11 @@ class PageService {
           select: 'title subtitle icon thumbnail slug featuredImage' // Only select necessary fields
         })
         .lean(); // Convert to plain JavaScript object
+
+      console.log('[getHomePage] Found document:', homePage ? 'YES' : 'NO');
+      if (homePage) {
+        console.log('[getHomePage] Document hero section:', JSON.stringify(homePage.sections?.hero, null, 2));
+      }
 
       // If no home page exists, create one with default structure
       if (!homePage) {
@@ -153,7 +160,10 @@ class PageService {
   // ------------------ UPDATE HOME PAGE ------------------
   static async updateHomePage(language, data, files, req) {
     const { title, seo, sections = {}, isActive = true } = data;
-    const finalSlug = 'Homeeee';
+    const finalSlug = 'home';
+
+    console.log('[updateHomePage] Language:', language);
+    console.log('[updateHomePage] Incoming sections:', JSON.stringify(sections, null, 2));
 
     let homePage = await PageContent.findOne({ pageType: 'home', language });
 
@@ -189,11 +199,17 @@ class PageService {
     }
       
     // Merge with existing or default sections
+    const existingSections = homePage?.sections?.toObject?.() || homePage?.sections || {};
+    console.log('[updateHomePage] Existing sections from DB:', JSON.stringify(existingSections, null, 2));
+
     const mergedSections = _.merge(
       {},
-      homePage?.sections || DEFAULT_HOME_STRUCTURE.sections,
+      DEFAULT_HOME_STRUCTURE.sections,
+      existingSections,
       sections
     );
+
+    console.log('[updateHomePage] Merged sections:', JSON.stringify(mergedSections, null, 2));
 
     const updateData = {
       slug: finalSlug,
@@ -206,12 +222,14 @@ class PageService {
 
     // Update or create
     if (homePage) {
+      console.log('[updateHomePage] Updating existing document ID:', homePage._id);
       homePage = await PageContent.findByIdAndUpdate(
         homePage._id,
         { $set: updateData },
         { new: true, runValidators: true }
       );
     } else {
+      console.log('[updateHomePage] Creating new home page document');
       homePage = await PageContent.create({
         ...DEFAULT_HOME_STRUCTURE,
         ...updateData,
@@ -220,6 +238,7 @@ class PageService {
       });
     }
 
+    console.log('[updateHomePage] Saved document sections:', JSON.stringify(homePage?.sections, null, 2));
     return homePage;
   }
 
