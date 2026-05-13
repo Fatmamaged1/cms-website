@@ -184,7 +184,8 @@ class PageService {
           const file = fileArr[0];
           // Map dashboard field names or convert bracket notation
           let fieldPath = fieldNameMapping[field] || field.replace(/\[/g, '.').replace(/\]/g, '');
-          const url = `${protocol}://${host}/uploads/${file.filename}`;
+          // Files are stored in public/uploads/images/ and served at /uploads/images/
+          const url = `${protocol}://${host}/uploads/images/${file.filename}`;
 
           // Save as object with metadata
           _.set(sections, fieldPath, {
