@@ -2,12 +2,12 @@ const Partner = require("../models/Partner");
 const slugify = require("slugify");
 exports.createPartner = async (req, res, next) => {
     try {
-        const { name, logo, brief, url, services } = req.body;
+        const { name, logo, brief, url, description, website, services } = req.body;
         const partner = await Partner.create({
             name,
             logo,
-            brief,
-            url,
+            brief: brief || description,
+            url: url || website,
             services,
             slug: slugify(name, { lower: true })
         });
@@ -47,7 +47,14 @@ exports.getPartnerById = async (req, res, next) => {
 exports.updatePartner = async (req, res, next) => {
     try {
         const { id } = req.params;
-        const partner = await Partner.findByIdAndUpdate(id, req.body, { new: true });
+        const updateData = { ...req.body };
+        if (updateData.description !== undefined && updateData.brief === undefined) {
+            updateData.brief = updateData.description;
+        }
+        if (updateData.website !== undefined && updateData.url === undefined) {
+            updateData.url = updateData.website;
+        }
+        const partner = await Partner.findByIdAndUpdate(id, updateData, { new: true });
         if (!partner) {
             return res.status(404).json({ success: false, message: "Partner not found" });
         }

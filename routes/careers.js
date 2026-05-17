@@ -17,7 +17,7 @@ router.post(
 
 // Admin CRUD
 router.post("/", protect, authorize("admin"), careerController.createCareer);
-router.put("/:id", protect, authorize("admin"), uploadFilePDF("resume"), careerController.updateCareer);
+router.put("/:id", protect, authorize("admin"), careerController.updateCareer);
 router.delete("/:id", protect, authorize("admin"), careerController.deleteCareer);
 
 // Admin: applications inbox
