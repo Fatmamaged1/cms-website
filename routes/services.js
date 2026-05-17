@@ -191,7 +191,7 @@ router.post(
     protect,
     authorize('admin'),
     handleUpload('featuredImage'),
-    parseFormDataJson(['categories', 'tags', 'seo', 'featured', 'isActive']),
+  parseFormDataJson(['categories', 'tags', 'seo', 'featured', 'isActive', 'features', 'offerings', 'steps', 'faq']),
     [
       body('title').trim().notEmpty().withMessage('Title is required'),
       body('description').optional().isString().withMessage('Description is required'),
@@ -211,6 +211,10 @@ router.post(
         const parsedCategories = Array.isArray(req.body.categories) ? req.body.categories : (req.body.categories ? JSON.parse(req.body.categories) : []);
         const parsedTags = Array.isArray(req.body.tags) ? req.body.tags : (req.body.tags ? JSON.parse(req.body.tags) : []);
         const parsedSeo = typeof req.body.seo === 'object' ? req.body.seo : (req.body.seo ? JSON.parse(req.body.seo) : null);
+        const parsedFeatures = typeof req.body.features === 'string' ? JSON.parse(req.body.features) : (req.body.features || []);
+        const parsedOfferings = typeof req.body.offerings === 'string' ? JSON.parse(req.body.offerings) : (req.body.offerings || []);
+        const parsedSteps = typeof req.body.steps === 'string' ? JSON.parse(req.body.steps) : (req.body.steps || []);
+        const parsedFaq = typeof req.body.faq === 'string' ? JSON.parse(req.body.faq) : (req.body.faq || []);
         const serviceData = {
           title: req.body.title,
           description: req.body.description,
@@ -220,6 +224,10 @@ router.post(
           tags: parsedTags,
           seo: parsedSeo,
           featured: req.body.featured === 'true' || req.body.featured === true,
+          features: parsedFeatures,
+          offerings: parsedOfferings,
+          steps: parsedSteps,
+          faq: parsedFaq,
           featuredImage: req.file
           ? `${req.protocol}://${req.get('host')}/${req.file.filename.replace(/\\/g, '/').replace('public/', '')}`
           : null,
@@ -236,7 +244,7 @@ router.post(
       } catch (error) {
         // حذف الصورة إذا حصل خطأ
         if (req.file) {
-          await fileService.deleteFileByUrl(req.file.path);
+          await fileService.deleteFileByUrl(req.file.filename);
         }
         next(error);
       }
@@ -268,6 +276,22 @@ router.put(
     try {
       const { id } = req.params;
       const updateData = { ...req.body };
+
+      // Parse JSON string fields that come from multipart/form-data
+      // (parseFormDataJson may not have run yet if multer is still processing)
+      ['faq', 'features', 'offerings', 'steps'].forEach((field) => {
+        if (typeof updateData[field] === 'string') {
+          try {
+            updateData[field] = JSON.parse(updateData[field]);
+          } catch (e) {
+            delete updateData[field];
+          }
+        }
+      });
+
+      // Parse boolean fields from strings
+      if (typeof updateData.featured === 'string') updateData.featured = updateData.featured === 'true';
+      if (typeof updateData.isActive === 'string') updateData.isActive = updateData.isActive === 'true';
       
       // Get the existing service to handle image cleanup if needed
       const existingService = await Service.findById(id);
@@ -280,7 +304,7 @@ router.put(
       
       // If a new image is being uploaded
       if (req.file) {
-        updateData.featuredImage = req.protocol + '://' + req.get('host') + '/' + req.file.path;
+        updateData.featuredImage = `${req.protocol}://${req.get('host')}/${req.file.filename}`;
       }
       
       // Don't allow changing the slug directly
@@ -314,7 +338,7 @@ router.put(
     } catch (error) {
       // Clean up uploaded files if there's an error
       if (req.file) {
-        await fileService.deleteFileByUrl(req.body.featuredImage);
+        await fileService.deleteFileByUrl(req.file.filename);
       }
       next(error);
     }
@@ -453,6 +477,146 @@ router.delete(
       res.status(204).json({
         success: true,
         data: null
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+  );
+
+// ===== FAQ Routes =====
+
+// Add FAQ to a service
+router.post(
+  '/faq/:serviceId',
+  protect,
+  authorize('admin'),
+  [
+    param('serviceId').isMongoId().withMessage('Invalid service ID'),
+    body('question').trim().notEmpty().withMessage('Question is required'),
+    body('answer').trim().notEmpty().withMessage('Answer is required')
+  ],
+  validateRequest,
+  async (req, res, next) => {
+    try {
+      const { serviceId } = req.params;
+      const { question, answer } = req.body;
+
+      const service = await Service.findById(serviceId);
+      if (!service) {
+        throw new NotFoundError('Service not found');
+      }
+
+      service.faq = service.faq || [];
+      service.faq.push({ question, answer, order: service.faq.length });
+      await service.save();
+
+      res.status(201).json({
+        success: true,
+        message: 'FAQ added successfully',
+        data: service.faq
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// Update FAQ item
+router.put(
+  '/faq/:serviceId/:faqId',
+  protect,
+  authorize('admin'),
+  [
+    param('serviceId').isMongoId().withMessage('Invalid service ID'),
+    param('faqId').isMongoId().withMessage('Invalid FAQ ID'),
+    body('question').optional().trim().notEmpty().withMessage('Question is required'),
+    body('answer').optional().trim().notEmpty().withMessage('Answer is required')
+  ],
+  validateRequest,
+  async (req, res, next) => {
+    try {
+      const { serviceId, faqId } = req.params;
+      const { question, answer } = req.body;
+
+      const service = await Service.findById(serviceId);
+      if (!service) {
+        throw new NotFoundError('Service not found');
+      }
+
+      const faqItem = service.faq.id(faqId);
+      if (!faqItem) {
+        throw new NotFoundError('FAQ item not found');
+      }
+
+      if (question !== undefined) faqItem.question = question;
+      if (answer !== undefined) faqItem.answer = answer;
+      await service.save();
+
+      res.json({
+        success: true,
+        message: 'FAQ updated successfully',
+        data: faqItem
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// Delete FAQ item
+router.delete(
+  '/faq/:serviceId/:faqId',
+  protect,
+  authorize('admin'),
+  [
+    param('serviceId').isMongoId().withMessage('Invalid service ID'),
+    param('faqId').isMongoId().withMessage('Invalid FAQ ID')
+  ],
+  validateRequest,
+  async (req, res, next) => {
+    try {
+      const { serviceId, faqId } = req.params;
+
+      const service = await Service.findById(serviceId);
+      if (!service) {
+        throw new NotFoundError('Service not found');
+      }
+
+      const faqItem = service.faq.id(faqId);
+      if (!faqItem) {
+        throw new NotFoundError('FAQ item not found');
+      }
+
+      faqItem.remove();
+      await service.save();
+
+      res.json({
+        success: true,
+        message: 'FAQ deleted successfully',
+        data: null
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// Get all partners linked to a service
+router.get(
+  '/:serviceId/partners',
+  async (req, res, next) => {
+    try {
+      const { serviceId } = req.params;
+
+      const service = await Service.findById(serviceId).populate('partners', 'name logo brief url slug').lean();
+      if (!service) {
+        throw new NotFoundError('Service not found');
+      }
+
+      res.json({
+        success: true,
+        data: service.partners || []
       });
     } catch (error) {
       next(error);

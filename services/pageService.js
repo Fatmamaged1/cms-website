@@ -335,11 +335,16 @@ class PageService {
     const existingSections = homePage?.sections?.toObject?.() || homePage?.sections || {};
     console.log('[updateHomePage] Existing sections from DB:', JSON.stringify(existingSections, null, 2));
 
-    const mergedSections = _.merge(
+    const mergedSections = _.mergeWith(
       {},
       DEFAULT_HOME_STRUCTURE.sections,
       existingSections,
-      sections
+      sections,
+      (objValue, srcValue) => {
+        if (Array.isArray(objValue) && Array.isArray(srcValue)) {
+          return srcValue;
+        }
+      }
     );
 
     console.log('[updateHomePage] Merged sections:', JSON.stringify(mergedSections, null, 2));

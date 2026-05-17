@@ -23,6 +23,14 @@ const userSchema = new mongoose.Schema({
     enum: ["admin", "editor", "viewer"],
     default: "viewer",
   },
+  phone: {
+    type: String,
+    trim: true,
+  },
+  avatar: {
+    type: String,
+    trim: true,
+  },
   resetPasswordToken: {
     type: String,
     default: null,

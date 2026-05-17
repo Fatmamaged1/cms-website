@@ -4,7 +4,7 @@ const About = require('../models/About');
 
 // Helper function to create image object from file
 const createImageObject = (file, req) => ({
-  url: `${req.protocol}://${req.get('host')}/uploads/${file.filename}`,
+  url: `${req.protocol}://${req.get('host')}/uploads/images/${file.filename}`,
   alt: file.originalname || '',
   size: file.size || 0,
   mimeType: file.mimetype || '',
