@@ -28,6 +28,10 @@ const blogSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  authorImage: {
+    type: String,
+    trim: true
+  },
   
   // Main content as blocks
   content: String,

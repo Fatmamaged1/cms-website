@@ -4,7 +4,7 @@ const Blog = require('../models/Blog');
 
 const { withCache, clearCache } = require('../services/cache.js');
 const { BadRequestError, NotFoundError } = require('../utils/errors.js');
-const { handleUpload, fileService } = require('../services/upload');
+const { handleMultipleUploads, fileService } = require('../services/upload');
 const { sendResponse } = require('../utils/response');
 const { protect, authorize } = require('../middleware/auth');
 const { validateRequest, parseFormDataJson } = require('../middleware/validation');
@@ -77,7 +77,36 @@ router.get('/:idOrSlug', async (req, res, next) => {
   }
 });
 
-router.post('/', protect, authorize('admin'), handleUpload('featuredImage'), parseFormDataJson(['categories', 'tags', 'seo']), async (req, res, next) => {
+const imageFields = [
+  { name: 'featuredImage', maxCount: 1 },
+  { name: 'thumbnail', maxCount: 1 },
+  { name: 'authorImage', maxCount: 1 }
+];
+
+const hostUrl = (req) => `${req.protocol}://${req.get('host')}`;
+
+const fileUrl = (req, field) => {
+  const file = req.files?.[field]?.[0];
+  return file ? `${hostUrl(req)}/uploads/images/${file.filename}` : null;
+};
+
+const uploadedFiles = (req) => {
+  const files = [];
+  if (req.files) {
+    for (const field of ['featuredImage', 'thumbnail', 'authorImage']) {
+      if (req.files[field]?.[0]) files.push(req.files[field][0]);
+    }
+  }
+  return files;
+};
+
+const deleteUploadedFiles = async (req) => {
+  for (const file of uploadedFiles(req)) {
+    try { await fileService.deleteFileByUrl(`${hostUrl(req)}/uploads/images/${file.filename}`); } catch {}
+  }
+};
+
+router.post('/', protect, authorize('admin'), handleMultipleUploads(imageFields), parseFormDataJson(['categories', 'tags', 'seo']), async (req, res, next) => {
 
   await Promise.all([
     body('title').trim().notEmpty().withMessage('Title is required').run(req),
@@ -92,7 +121,7 @@ router.post('/', protect, authorize('admin'), handleUpload('featuredImage'), par
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      if (req.file) await fileService.deleteFileByUrl(req.file.filename);
+      await deleteUploadedFiles(req);
       return next(new BadRequestError('Validation failed', 400, errors.array()));
     }
 
@@ -100,7 +129,9 @@ router.post('/', protect, authorize('admin'), handleUpload('featuredImage'), par
       ...req.body,
       author: req.user?._id,
       slug: req.body.slug || req.body.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
-      featuredImage: req.file ? `${req.protocol}://${req.get('host')}/uploads/images/${req.file.filename}` : null
+      featuredImage: fileUrl(req, 'featuredImage'),
+      thumbnail: fileUrl(req, 'thumbnail'),
+      authorImage: fileUrl(req, 'authorImage')
     };
 
     const post = await Blog.create(postData);
@@ -113,34 +144,42 @@ router.post('/', protect, authorize('admin'), handleUpload('featuredImage'), par
       data: post
     });
   } catch (error) {
-    if (req.file) await fileService.deleteFileByUrl(req.file.filename);
+    await deleteUploadedFiles(req);
     next(error);
   }
 });
 
 // ✅ Update a blog post
-router.patch('/:id', protect, authorize('admin'), handleUpload('featuredImage'), parseFormDataJson(['categories', 'tags', 'seo']), [
+router.patch('/:id', protect, authorize('admin'), handleMultipleUploads(imageFields), parseFormDataJson(['categories', 'tags', 'seo']), [
   param('id').isMongoId().withMessage('Invalid post ID'),
   body('title').optional().trim().notEmpty(),
   body('excerpt').optional().trim().notEmpty(),
-  body('status').optional().isIn(['draft', 'published']),
+  body('status').optional().isIn(['draft', 'published', 'archived']),
   body('language').optional().isIn(['en', 'ar'])
 ], async (req, res, next) => {
-  let oldImageUrl = null;
+  let oldFeaturedImage = null;
+  let oldThumbnail = null;
+  let oldAuthorImage = null;
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      if (req.file) await fileService.deleteFileByUrl(req.file.filename);
+      await deleteUploadedFiles(req);
       return next(new BadRequestError('Validation failed', 400, errors.array()));
     }
 
     const { id } = req.params;
     const updateData = { ...req.body };
 
-    if (req.file) {
-      const currentPost = await Blog.findById(id).select('featuredImage');
-      if (currentPost?.featuredImage) oldImageUrl = currentPost.featuredImage;
-      updateData.featuredImage = `${req.protocol}://${req.get('host')}/${req.file.filename}`;
+    if (req.files) {
+      const currentPost = await Blog.findById(id).select('featuredImage thumbnail authorImage');
+      if (currentPost) {
+        oldFeaturedImage = currentPost.featuredImage;
+        oldThumbnail = currentPost.thumbnail;
+        oldAuthorImage = currentPost.authorImage;
+      }
+      if (req.files.featuredImage?.[0]) updateData.featuredImage = fileUrl(req, 'featuredImage');
+      if (req.files.thumbnail?.[0]) updateData.thumbnail = fileUrl(req, 'thumbnail');
+      if (req.files.authorImage?.[0]) updateData.authorImage = fileUrl(req, 'authorImage');
     }
 
     if (updateData.status === 'published' && !updateData.publishedAt) {
@@ -149,12 +188,17 @@ router.patch('/:id', protect, authorize('admin'), handleUpload('featuredImage'),
 
     const post = await Blog.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
     if (!post) {
-      if (req.file) await fileService.deleteFileByUrl(req.file.filename);
+      await deleteUploadedFiles(req);
       return next(new NotFoundError('No blog post found with that ID', 404));
     }
 
-    if (oldImageUrl && oldImageUrl !== post.featuredImage) {
-      await fileService.deleteFileByUrl(oldImageUrl);
+    // Clean up old images that were replaced
+    const oldImages = [oldFeaturedImage, oldThumbnail, oldAuthorImage];
+    const newImages = [post.featuredImage, post.thumbnail, post.authorImage];
+    for (let i = 0; i < oldImages.length; i++) {
+      if (oldImages[i] && oldImages[i] !== newImages[i]) {
+        try { await fileService.deleteFileByUrl(oldImages[i]); } catch {}
+      }
     }
 
     await clearCache(`blog:${post.slug}`);
@@ -165,7 +209,7 @@ router.patch('/:id', protect, authorize('admin'), handleUpload('featuredImage'),
       data: post
     });
   } catch (error) {
-    if (req.file) await fileService.deleteFileByUrl(req.file.filename);
+    await deleteUploadedFiles(req);
     next(error);
   }
 });
