@@ -77,29 +77,17 @@ router.get('/:idOrSlug', async (req, res, next) => {
   }
 });
 
-router.post('/', protect, authorize('admin'), handleUpload('featuredImage'), async (req, res, next) => {
-  // Parse JSON fields (but NOT content - it stays as a string for the Blog model)
-  ['categories', 'tags'].forEach((field) => {
-    if (typeof req.body[field] === 'string') {
-      try {
-        req.body[field] = JSON.parse(req.body[field]);
-      } catch (e) {
-        console.warn(`Invalid JSON in ${field}:`, e.message);
-        req.body[field] = null;
-      }
-    }
-  });
+router.post('/', protect, authorize('admin'), handleUpload('featuredImage'), parseFormDataJson(['categories', 'tags', 'seo']), async (req, res, next) => {
 
   await Promise.all([
     body('title').trim().notEmpty().withMessage('Title is required').run(req),
-    body('excerpt').trim().notEmpty().withMessage('Excerpt is required').run(req),
+    body('excerpt').optional({ nullable: true }).isString().withMessage('Excerpt must be a string').run(req),
     body('content').optional({ nullable: true }).isString().withMessage('Content must be a text').run(req),
-    body('status').isIn(['draft', 'published']).withMessage('Invalid status').run(req),
+    body('status').isIn(['draft', 'published', 'archived']).withMessage('Invalid status').run(req),
     body('language').isIn(['en', 'ar']).withMessage('Invalid language code').run(req),
     body('categories').optional().isArray().withMessage('Categories must be an array').run(req),
     body('tags').optional().isArray().withMessage('Tags must be an array').run(req)
   ]);
-  
 
   try {
     const errors = validationResult(req);
@@ -112,7 +100,7 @@ router.post('/', protect, authorize('admin'), handleUpload('featuredImage'), asy
       ...req.body,
       author: req.user?._id,
       slug: req.body.slug || req.body.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
-      featuredImage: req.file ? `${req.protocol}://${req.get('host')}/${req.file.filename}` : null
+      featuredImage: req.file ? `${req.protocol}://${req.get('host')}/uploads/images/${req.file.filename}` : null
     };
 
     const post = await Blog.create(postData);
