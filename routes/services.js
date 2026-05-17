@@ -2,7 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const { body, param, query } = require('express-validator');
-const { validateRequest } = require('../middleware/validation');
+const { validateRequest, parseFormDataJson } = require('../middleware/validation');
 const { protect, authorize } = require('../middleware/auth');
 const Service = require('../models/Service');
 const { NotFoundError, BadRequestError } = require('../utils/errors');
@@ -191,6 +191,7 @@ router.post(
     protect,
     authorize('admin'),
     handleUpload('featuredImage'),
+    parseFormDataJson(['categories', 'tags', 'seo', 'featured', 'isActive']),
     [
       body('title').trim().notEmpty().withMessage('Title is required'),
       body('description').optional().isString().withMessage('Description is required'),
@@ -207,10 +208,9 @@ router.post(
         const userId = req.user?.id; // إذا كنت تحتاج ربط الخدمة بالمستخدم
         
         // ✅ معالجة البيانات القادمة كسلاسل JSON (لأنها من form-data)
-        // const parsedContent = req.body.content ? req.body.content : '';
-        const parsedCategories = req.body.categories ? JSON.parse(req.body.categories) : [];
-        const parsedTags = req.body.tags ? JSON.parse(req.body.tags) : [];
-        const parsedSeo = req.body.seo ? JSON.parse(req.body.seo) : null;
+        const parsedCategories = Array.isArray(req.body.categories) ? req.body.categories : (req.body.categories ? JSON.parse(req.body.categories) : []);
+        const parsedTags = Array.isArray(req.body.tags) ? req.body.tags : (req.body.tags ? JSON.parse(req.body.tags) : []);
+        const parsedSeo = typeof req.body.seo === 'object' ? req.body.seo : (req.body.seo ? JSON.parse(req.body.seo) : null);
         const serviceData = {
           title: req.body.title,
           description: req.body.description,
@@ -250,6 +250,7 @@ router.put(
   authorize('admin'),
   handleUpload('featuredImage'),
   processContentUploads, // Process any file uploads in content blocks
+  parseFormDataJson(['categories', 'tags', 'seo', 'featured', 'isActive']),
   [
     param('id').isMongoId().withMessage('Invalid service ID'),
     body('title').optional().isString().trim().notEmpty().withMessage('Title is required'),

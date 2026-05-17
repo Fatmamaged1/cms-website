@@ -23,10 +23,18 @@ router.put(
     { name: 'sections.hero.backgroundImage', maxCount: 1 },
     { name: 'sections.about.image', maxCount: 1 },
     { name: 'sections.services.backgroundImage', maxCount: 1 },
+    { name: 'sections.ceo.image', maxCount: 1 },
+    { name: 'sections.ourStory.image.light', maxCount: 1 },
+    { name: 'sections.ourStory.image.dark', maxCount: 1 },
+    { name: 'sections.freedom.image', maxCount: 1 },
     // Dashboard field names (with underscore notation)
     { name: 'hero_backgroundImage', maxCount: 1 },
     { name: 'about_image', maxCount: 1 },
     { name: 'services_backgroundImage', maxCount: 1 },
+    { name: 'ceo_image', maxCount: 1 },
+    { name: 'ourStory_image_light', maxCount: 1 },
+    { name: 'ourStory_image_dark', maxCount: 1 },
+    { name: 'freedom_image', maxCount: 1 }
   ]),
   parseFormDataJson(['sections', 'seo']), // Parse JSON strings from FormData before validation
   [

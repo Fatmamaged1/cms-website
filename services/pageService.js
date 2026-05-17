@@ -98,9 +98,6 @@ class PageService {
         .lean(); // Convert to plain JavaScript object
 
       console.log('[getHomePage] Found document:', homePage ? 'YES' : 'NO');
-      if (homePage) {
-        console.log('[getHomePage] Document hero section:', JSON.stringify(homePage.sections?.hero, null, 2));
-      }
 
       // If no home page exists, create one with default structure
       if (!homePage) {
@@ -111,10 +108,9 @@ class PageService {
           language,
           isActive: true
         });
+        // Convert to plain object
+        homePage = homePage.toObject();
       }
-
-      // Get about section from AboutService
-      const about = await AboutService.getAbout(language);
 
       // Get all active services
       const services = await Service.find({ isActive: true, language })
@@ -132,28 +128,113 @@ class PageService {
           .lean();
       }
 
-      // Construct the response with merged data
+      // Helper function to extract image objects cleanly
+      const getImageObject = (img, defaultUrl = "") => {
+        if (!img) return { url: defaultUrl, alt: "" };
+        if (typeof img === 'string') return { url: img, alt: "" };
+        return { url: img.url || defaultUrl, alt: img.alt || "" };
+      };
+
+      // Extract sections with robust dynamic fallbacks
+      const hero = {
+        title: homePage.sections?.hero?.title || "Innovative Medical Solutions for a Healthier Tomorrow",
+        subtitle: homePage.sections?.hero?.subtitle || "Partnering with healthcare providers to bring quality, safety, and confidence to every procedure.",
+        backgroundImage: getImageObject(homePage.sections?.hero?.backgroundImage, "/images/hero-bg.jpg"),
+        ctaText: homePage.sections?.hero?.ctaText || "Discover Services",
+        ctaLink: homePage.sections?.hero?.ctaLink || "/services"
+      };
+
+      const about = {
+        title: homePage.sections?.about?.title || "Your Trusted Medical Partner in Saudi Arabia",
+        description: homePage.sections?.about?.description || "At Premium Medical Solutions Co., we are dedicated to transforming patient care across Saudi Arabia...",
+        image: getImageObject(homePage.sections?.about?.image, "/images/about.jpg")
+      };
+
+      const ceo = {
+        title: homePage.sections?.ceo?.title || "CEO Message",
+        name: homePage.sections?.ceo?.name || "Dr. Islam Ali",
+        role: homePage.sections?.ceo?.role || "President and Chief Executive Officer",
+        quote: homePage.sections?.ceo?.quote || "At PRE-MED, we exist to elevate surgical care in Saudi Arabia through trust, expertise, and meaningful partnerships.",
+        message: homePage.sections?.ceo?.message || "From day one, we set out to build more than a distribution business...",
+        image: getImageObject(homePage.sections?.ceo?.image, "/Images/AboutUs/ceo-light.jpeg")
+      };
+
+      const features = homePage.sections?.features && homePage.sections.features.length > 0 ? homePage.sections.features : [
+        { title: "Vision", subtitle: "Our Vision", content: "To be the leading provider of innovative orthopedic and surgical solutions...", order: 0 },
+        { title: "Mission", subtitle: "Our Mission", content: "To empower healthcare professionals with superior quality tools...", order: 1 },
+        { title: "Values", subtitle: "Our Core Values", content: "Integrity, Excellence, and Patient-centric Innovation...", order: 2 }
+      ];
+
+      const stats = homePage.sections?.stats && homePage.sections.stats.length > 0 ? homePage.sections.stats : [
+        { title: "10+", subtitle: "Years Experience", content: "A decade of serving patients", order: 0 },
+        { title: "50+", subtitle: "Partner Hospitals", content: "Leading healthcare facilities", order: 1 },
+        { title: "1000+", subtitle: "Surgical Procedures", content: "Empowering successful operations", order: 2 },
+        { title: "100%", subtitle: "Client Satisfaction", content: "Dedicated support and clinical care", order: 3 },
+        { title: "20+", subtitle: "Global Brands", content: "World-class orthopedic systems", order: 4 },
+        { title: "24/7", subtitle: "Clinical Support", content: "Always beside our partners", order: 5 }
+      ];
+
+      const ourStory = {
+        title: homePage.sections?.ourStory?.title || "Our Story",
+        subtitle: homePage.sections?.ourStory?.subtitle || "Driven by Purpose, Guided by Care",
+        description: homePage.sections?.ourStory?.description || "PRE-MED was established with a singular vision...",
+        howWeGrew: {
+          title: homePage.sections?.ourStory?.howWeGrew?.title || "How We Grew:",
+          bullets: homePage.sections?.ourStory?.howWeGrew?.bullets || [
+            "Expanding standard clinical expertise.",
+            "Deploying state-of-the-art orthopedic systems.",
+            "Expanding presence to cover 20+ specialized hospitals."
+          ]
+        },
+        image: {
+          light: getImageObject(homePage.sections?.ourStory?.image?.light, "/Images/AboutUs/ceo-light.jpeg"),
+          dark: getImageObject(homePage.sections?.ourStory?.image?.dark, "/Images/AboutUs/ceo-dark.jpeg")
+        }
+      };
+
+      const freedom = {
+        title: homePage.sections?.freedom?.title || "Reclaim Your Freedom of Motion",
+        image: getImageObject(homePage.sections?.freedom?.image, "/Images/Home/new/Frame 124.webp")
+      };
+
+      const servicesSection = {
+        title: homePage.sections?.services?.title || "Our Products & Services",
+        subtitle: homePage.sections?.services?.subtitle || "Exploring our modern orthopedic solutions...",
+        featuredServices: services
+      };
+
+      const blogSection = {
+        title: homePage.sections?.blog?.title || "Our Blog",
+        subtitle: homePage.sections?.blog?.subtitle || "Latest News and Updates",
+        featuredBlogs
+      };
+
+      const clients = homePage.sections?.clients || DEFAULT_HOME_STRUCTURE.sections.clients;
+
+      // Construct the response matching the exact response shape
       return {
-        ...homePage,
+        _id: homePage._id,
+        pageType: homePage.pageType,
+        slug: homePage.slug,
+        language: homePage.language,
+        isActive: homePage.isActive,
+        seo: homePage.seo || DEFAULT_HOME_STRUCTURE.seo,
         sections: {
-          hero: homePage.sections?.hero || DEFAULT_HOME_STRUCTURE.sections.hero,
+          hero,
           about,
-          blog: {
-            ...(homePage.sections?.blog || DEFAULT_HOME_STRUCTURE.sections.blog),
-            featuredBlogs
-          },
-          services: {
-            ...(homePage.sections?.services || DEFAULT_HOME_STRUCTURE.sections.services),
-            featuredServices: services
-          },
-          // Keep other sections as is
-          clients: DEFAULT_HOME_STRUCTURE.sections.clients,
-          features: homePage.sections?.features || DEFAULT_HOME_STRUCTURE.sections.features
+          ceo,
+          features,
+          stats,
+          ourStory,
+          freedom,
+          services: servicesSection,
+          blog: blogSection,
+          clients
         }
       };
     } catch (error) {
       console.error('Error in getHomePage:', error);
-      throw error; // Re-throw the error to be handled by the controller
+      throw error;
     }
   }
 
@@ -167,12 +248,65 @@ class PageService {
 
     let homePage = await PageContent.findOne({ pageType: 'home', language });
 
-    // Map dashboard field names to proper paths
+    // Map dashboard field names to proper paths for uploaded files
     const fieldNameMapping = {
       'hero_backgroundImage': 'hero.backgroundImage',
       'about_image': 'about.image',
-      'services_backgroundImage': 'services.backgroundImage'
+      'services_backgroundImage': 'services.backgroundImage',
+      'ceo_image': 'ceo.image',
+      'ourStory_image_light': 'ourStory.image.light',
+      'ourStory_image_dark': 'ourStory.image.dark',
+      'freedom_image': 'freedom.image'
     };
+
+    // Reconstruct sections from flat FormData keys if they are passed flat
+    const textMapping = {
+      'hero_title': 'hero.title',
+      'hero_subtitle': 'hero.subtitle',
+      'hero_ctaText': 'hero.ctaText',
+      'hero_ctaLink': 'hero.ctaLink',
+      'about_title': 'about.title',
+      'about_description': 'about.description',
+      'ceo_title': 'ceo.title',
+      'ceo_name': 'ceo.name',
+      'ceo_role': 'ceo.role',
+      'ceo_quote': 'ceo.quote',
+      'ceo_message': 'ceo.message',
+      'ourStory_title': 'ourStory.title',
+      'ourStory_subtitle': 'ourStory.subtitle',
+      'ourStory_description': 'ourStory.description',
+      'ourStory_howWeGrew_title': 'ourStory.howWeGrew.title',
+      'freedom_title': 'freedom.title',
+      'services_title': 'services.title',
+      'services_subtitle': 'services.subtitle',
+      'blog_title': 'blog.title',
+      'blog_subtitle': 'blog.subtitle'
+    };
+
+    // Map flat text keys to nested sections path
+    for (const [flatKey, path] of Object.entries(textMapping)) {
+      if (data[flatKey] !== undefined) {
+        _.set(sections, path, data[flatKey]);
+      }
+    }
+
+    // Handle JSON string fields
+    const jsonFields = {
+      'stats': 'stats',
+      'features': 'features',
+      'ourStory_howWeGrew_bullets': 'ourStory.howWeGrew.bullets'
+    };
+
+    for (const [flatKey, path] of Object.entries(jsonFields)) {
+      if (data[flatKey] !== undefined) {
+        try {
+          const parsed = typeof data[flatKey] === 'string' ? JSON.parse(data[flatKey]) : data[flatKey];
+          _.set(sections, path, parsed);
+        } catch (e) {
+          console.error(`Error parsing JSON for field ${flatKey}:`, e.message);
+        }
+      }
+    }
 
     // Handle uploaded files dynamically
     if (files) {
@@ -182,9 +316,7 @@ class PageService {
       for (const [field, fileArr] of Object.entries(files)) {
         if (Array.isArray(fileArr) && fileArr.length > 0) {
           const file = fileArr[0];
-          // Map dashboard field names or convert bracket notation
           let fieldPath = fieldNameMapping[field] || field.replace(/\[/g, '.').replace(/\]/g, '');
-          // Files are stored in public/uploads/images/ and served at /uploads/images/
           const url = `${protocol}://${host}/uploads/images/${file.filename}`;
 
           // Save as object with metadata
@@ -199,7 +331,7 @@ class PageService {
       }
     }
       
-    // Merge with existing or default sections
+    // Merge with existing sections
     const existingSections = homePage?.sections?.toObject?.() || homePage?.sections || {};
     console.log('[updateHomePage] Existing sections from DB:', JSON.stringify(existingSections, null, 2));
 

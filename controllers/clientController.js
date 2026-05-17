@@ -2,12 +2,12 @@ const Client = require("../models/Client");
 const slugify = require("slugify");
 exports.createClient = async (req, res, next) => {
     try {
-        const { name, logo, brief, url, services } = req.body;
+        const { name, logo, brief, url, description, website, services } = req.body;
         const client = await Client.create({
             name,
             logo,
-            brief,
-            url,
+            brief: brief || description,
+            url: url || website,
             services,
             slug: slugify(name, { lower: true })
         });
@@ -47,7 +47,14 @@ exports.getClientById = async (req, res, next) => {
 exports.updateClient = async (req, res, next) => {
     try {
         const { id } = req.params;
-        const client = await Client.findByIdAndUpdate(id, req.body, { new: true });
+        const updateData = { ...req.body };
+        if (updateData.description !== undefined && updateData.brief === undefined) {
+            updateData.brief = updateData.description;
+        }
+        if (updateData.website !== undefined && updateData.url === undefined) {
+            updateData.url = updateData.website;
+        }
+        const client = await Client.findByIdAndUpdate(id, updateData, { new: true });
         if (!client) {
             return res.status(404).json({ success: false, message: "Client not found" });
         }

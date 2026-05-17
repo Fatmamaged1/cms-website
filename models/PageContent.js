@@ -25,7 +25,7 @@ const pageContentSchema = new mongoose.Schema({
       title: String,
       subtitle: String,
       description: String,
-      content: String,
+      content: { type: mongoose.Schema.Types.Mixed },
       // Inline features (the dashboard sends [{ title, content }, ...]).
       // Kept as Mixed so we don't require a separate Feature collection.
       features: { type: mongoose.Schema.Types.Mixed, default: [] },
@@ -66,6 +66,39 @@ const pageContentSchema = new mongoose.Schema({
       name: String,
       logo: String,
     }],
+    ceo: {
+      title: String,
+      name: String,
+      role: String,
+      quote: String,
+      message: String,
+      image: { type: mongoose.Schema.Types.Mixed }
+    },
+    stats: [
+      {
+        title: String,
+        subtitle: String,
+        content: String,
+        order: Number
+      }
+    ],
+    ourStory: {
+      title: String,
+      subtitle: String,
+      description: String,
+      howWeGrew: {
+        title: String,
+        bullets: [String]
+      },
+      image: {
+        light: { url: String, alt: String },
+        dark: { url: String, alt: String }
+      }
+    },
+    freedom: {
+      title: String,
+      image: { type: mongoose.Schema.Types.Mixed }
+    },
   },
   
   // Full page content (as blocks)
