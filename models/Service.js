@@ -64,6 +64,28 @@ const serviceSchema = new mongoose.Schema({
   relatedServices: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Service'
+  }],
+
+  // FAQ, features, offerings, steps
+  faq: [{
+    question: String,
+    answer: String,
+    order: { type: Number, default: 0 }
+  }],
+  features: [{
+    type: String
+  }],
+  offerings: [{
+    title: String,
+    description: String,
+    image: String,
+    order: { type: Number, default: 0 }
+  }],
+  steps: [{
+    title: String,
+    description: String,
+    image: String,
+    order: { type: Number, default: 0 }
   }]
 }, { discriminatorKey: 'contentType' });
 

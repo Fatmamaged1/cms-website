@@ -1,7 +1,9 @@
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
 const User = require("../models/User");
 const { sendPasswordResetEmail } = require("../services/sendMail");
+const { fileService } = require("../services/upload");
 
 const generateToken = (user) => {
   return jwt.sign(
@@ -122,6 +124,94 @@ exports.resetPassword = async (req, res, next) => {
 
     res.json({ success: true, message: "Password reset successful" });
   } catch (err) {
+    next(err);
+  }
+};
+
+// Get Profile
+exports.getProfile = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id).select("-password");
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+    res.json({ success: true, data: user });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Update Profile
+exports.updateProfile = async (req, res, next) => {
+  try {
+    const { name, email, phone } = req.body;
+    const updateData = {};
+    if (name) updateData.name = name;
+    if (email) updateData.email = email;
+    if (phone !== undefined) updateData.phone = phone;
+
+    const user = await User.findByIdAndUpdate(req.user._id, updateData, { new: true, runValidators: true }).select("-password");
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+    res.json({ success: true, data: user });
+  } catch (err) {
+    if (err.code === 11000) {
+      return res.status(400).json({ success: false, message: "Email already in use" });
+    }
+    next(err);
+  }
+};
+
+// Change Password
+exports.changePassword = async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    const isMatch = await user.comparePassword(currentPassword);
+    if (!isMatch) {
+      return res.status(401).json({ success: false, message: "Current password is incorrect" });
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    res.json({ success: true, message: "Password changed successfully" });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Upload Avatar
+exports.uploadAvatar = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: "No file uploaded" });
+    }
+
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    // Delete old avatar if exists
+    if (user.avatar) {
+      await fileService.deleteFileByUrl(user.avatar).catch(() => {});
+    }
+
+    const avatarUrl = `${req.protocol}://${req.get('host')}/${req.file.filename}`;
+    user.avatar = avatarUrl;
+    await user.save();
+
+    res.json({ success: true, data: { avatar: avatarUrl } });
+  } catch (err) {
+    if (req.file) {
+      await fileService.deleteFileByUrl(req.file.filename).catch(() => {});
+    }
     next(err);
   }
 };

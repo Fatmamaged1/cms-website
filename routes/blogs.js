@@ -7,7 +7,7 @@ const { BadRequestError, NotFoundError } = require('../utils/errors.js');
 const { handleUpload, fileService } = require('../services/upload');
 const { sendResponse } = require('../utils/response');
 const { protect, authorize } = require('../middleware/auth');
-const { validateRequest } = require('../middleware/validation');
+const { validateRequest, parseFormDataJson } = require('../middleware/validation');
 
 const router = express.Router();
 // ✅ Get all blog posts with only the fields you want
@@ -75,14 +75,14 @@ router.get('/:idOrSlug', async (req, res, next) => {
 });
 
 router.post('/', protect, authorize('admin'), handleUpload('featuredImage'), async (req, res, next) => {
-  // تحويل الحقول JSON إذا كانت نصوص
-  ['content', 'categories', 'tags'].forEach((field) => {
+  // Parse JSON fields (but NOT content - it stays as a string for the Blog model)
+  ['categories', 'tags'].forEach((field) => {
     if (typeof req.body[field] === 'string') {
       try {
         req.body[field] = JSON.parse(req.body[field]);
       } catch (e) {
         console.warn(`Invalid JSON in ${field}:`, e.message);
-        req.body[field] = null; // بدل ما ينهار
+        req.body[field] = null;
       }
     }
   });
@@ -90,9 +90,7 @@ router.post('/', protect, authorize('admin'), handleUpload('featuredImage'), asy
   await Promise.all([
     body('title').trim().notEmpty().withMessage('Title is required').run(req),
     body('excerpt').trim().notEmpty().withMessage('Excerpt is required').run(req),
-    body('content')
-      .optional({ nullable: true }) // يسمح بـ null أو undefined
-      .isString().withMessage('Content must be a text').run(req),
+    body('content').optional({ nullable: true }).isString().withMessage('Content must be a text').run(req),
     body('status').isIn(['draft', 'published']).withMessage('Invalid status').run(req),
     body('language').isIn(['en', 'ar']).withMessage('Invalid language code').run(req),
     body('categories').optional().isArray().withMessage('Categories must be an array').run(req),
@@ -130,22 +128,18 @@ router.post('/', protect, authorize('admin'), handleUpload('featuredImage'), asy
 });
 
 // ✅ Update a blog post
-router.patch('/:id', protect, authorize('admin'), handleUpload('featuredImage'), [
+router.patch('/:id', protect, authorize('admin'), handleUpload('featuredImage'), parseFormDataJson(['categories', 'tags', 'seo']), [
   param('id').isMongoId().withMessage('Invalid post ID'),
   body('title').optional().trim().notEmpty(),
   body('excerpt').optional().trim().notEmpty(),
-  body('content').optional().isString(),
-  body('categories').optional().isArray(),
-  body('tags').optional().isArray(),
   body('status').optional().isIn(['draft', 'published']),
   body('language').optional().isIn(['en', 'ar'])
 ], async (req, res, next) => {
   let oldImageUrl = null;
   try {
     const errors = validationResult(req);
-    console.log(errors.array());
     if (!errors.isEmpty()) {
-      if (req.file) await fileService.deleteFileByUrl(req.body.image);
+      if (req.file) await fileService.deleteFileByUrl(req.file.filename);
       return next(new BadRequestError('Validation failed', 400, errors.array()));
     }
 
@@ -155,7 +149,7 @@ router.patch('/:id', protect, authorize('admin'), handleUpload('featuredImage'),
     if (req.file) {
       const currentPost = await Blog.findById(id).select('featuredImage');
       if (currentPost?.featuredImage) oldImageUrl = currentPost.featuredImage;
-      updateData.featuredImage = req.body.featuredImage;
+      updateData.featuredImage = `${req.protocol}://${req.get('host')}/${req.file.filename}`;
     }
 
     if (updateData.status === 'published' && !updateData.publishedAt) {
@@ -164,7 +158,7 @@ router.patch('/:id', protect, authorize('admin'), handleUpload('featuredImage'),
 
     const post = await Blog.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
     if (!post) {
-      if (req.file) await fileService.deleteFileByUrl(req.body.image);
+      if (req.file) await fileService.deleteFileByUrl(req.file.filename);
       return next(new NotFoundError('No blog post found with that ID', 404));
     }
 
@@ -180,7 +174,7 @@ router.patch('/:id', protect, authorize('admin'), handleUpload('featuredImage'),
       data: post
     });
   } catch (error) {
-    if (req.file) await fileService.deleteFileByUrl(req.body.featuredImage);
+    if (req.file) await fileService.deleteFileByUrl(req.file.filename);
     next(error);
   }
 });
