@@ -119,7 +119,6 @@ router.get(
         .skip(skip)
         .limit(limit)
         .populate('partners', 'name logo brief url slug')
-        .populate('categories')
         .lean(),
       Service.countDocuments(query)
     ]);
@@ -167,7 +166,6 @@ router.get(
       const service = await Service.findOne(lookup)
         .populate('relatedServices', 'title slug excerpt thumbnail')
         .populate('partners', 'name logo brief url slug')
-        .populate('categories')
         .lean();
 
       if (!service) {
