@@ -61,7 +61,7 @@ router.get('/:idOrSlug', async (req, res, next) => {
         { new: true }
       )
         .populate('relatedPosts', 'title slug excerpt thumbnail featuredImage createdAt')
-        .populate('author', 'name avatar')
+        .populate('author', 'name email')
         .lean(),
       3600
     );

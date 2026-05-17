@@ -58,6 +58,12 @@ const blogSchema = new mongoose.Schema({
     default: 5
   },
   
+  // Author
+  author: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
+
   // Related posts
   relatedPosts: [{
     type: mongoose.Schema.Types.ObjectId,

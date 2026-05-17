@@ -123,14 +123,18 @@ exports.applyToCareer = async (req, res, next) => {
     const job = await Career.findById(req.params.id).select("title location");
 
     const resumeUrl = `${req.protocol}://${req.get("host")}/${path.basename(application.resume)}`;
-    await sendCareerApplicationConfirmationEmail(email, {
-      fullName,
-      email,
-      phone,
-      message,
-      resumeUrl,
-      job
-    });
+    try {
+      await sendCareerApplicationConfirmationEmail(email, {
+        fullName,
+        email,
+        phone,
+        message,
+        resumeUrl,
+        job
+      });
+    } catch (emailErr) {
+      console.error("Failed to send career application email (application saved):", emailErr.message);
+    }
     res.status(201).json({
       success: true,
       message: "تم تقديم طلب التوظيف بنجاح",
