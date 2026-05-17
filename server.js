@@ -5,7 +5,6 @@ const morgan = require('morgan');
 const compression = require('compression');
 const path = require('path');
 const mongoSanitize = require('express-mongo-sanitize');
-const xss = require('xss-clean');
 const cookieParser = require('cookie-parser');
 
 // ===== Import routes =====
@@ -99,7 +98,6 @@ app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
 // ===== Security Middleware =====
 app.use(mongoSanitize()); // NoSQL injection
-app.use(xss());           // XSS
 app.use(cookieParser());
 app.use(compression());
 
