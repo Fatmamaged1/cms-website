@@ -25,7 +25,6 @@ router.get('/', async (req, res, next) => {
       `blogs:all:${JSON.stringify(query)}`,
       () => Blog.find(query)
         .select('_id language isActive seo slug contentType title subtitle excerpt featuredImage status publishedAt createdAt updatedAt')
-        .populate('categories')
         .sort({ createdAt: -1 })
         .lean(),
       3600
@@ -61,7 +60,6 @@ router.get('/:idOrSlug', async (req, res, next) => {
         { $inc: { views: 1 } },
         { new: true }
       )
-        .populate('categories')
         .populate('relatedPosts', 'title slug excerpt thumbnail featuredImage createdAt')
         .populate('author', 'name avatar')
         .lean(),
