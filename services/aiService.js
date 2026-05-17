@@ -36,21 +36,25 @@ async function generateBlogContent(prompt, language = 'en') {
   const systemPrompt = language === 'ar'
     ? `أنت كاتب محتوى طبي محترف. قم بإنشاء محتوى مدونة طبية احترافي وجذاب باللغة العربية.
        يجب أن يكون المحتوى دقيقاً علمياً ومفيداً للقراء.
-       قم بإرجاع JSON فقط بالتنسيق المحدد.`
+       قم بإرجاع JSON فقط بدون أي نص إضافي أو علامات markdown.`
     : `You are a professional medical content writer. Create engaging, professional medical blog content.
        The content should be scientifically accurate and helpful for readers.
-       Return JSON only in the specified format.`;
+       Return ONLY valid JSON — no markdown code fences, no extra text, no backticks.`;
 
   const userPrompt = `Generate a blog post about: "${prompt}"
 
-  Return a JSON object with this exact structure:
+  Return VALID JSON ONLY — no markdown, no code fences, no extra text.
+  Use this exact structure:
   {
     "title": "Blog title",
-    "subtitle": "Optional subtitle",
+    "subtitle": "Optional subtitle (1 sentence)",
     "excerpt": "A brief 2-3 sentence summary",
-    "content": "Full blog content in HTML format with proper headings, paragraphs, and lists",
+    "content": "Full blog content in rich HTML with <h2>, <p>, <ul>/<li> tags — must use real HTML, not plain text",
     "tags": ["tag1", "tag2", "tag3"],
     "categories": ["category1"],
+    "readingTime": 5,
+    "authorName": "PREMED Medical Team",
+    "slug": "url-safe-slug-derived-from-title-lowercase-hyphens-only",
     "seo": {
       "metaTitle": "SEO optimized title (max 60 chars)",
       "metaDescription": "SEO meta description (max 160 chars)",
@@ -67,18 +71,19 @@ async function generateBlogContent(prompt, language = 'en') {
 async function generateServiceContent(prompt, language = 'en') {
   const systemPrompt = language === 'ar'
     ? `أنت خبير في كتابة محتوى الخدمات الطبية. قم بإنشاء محتوى خدمة طبية احترافي باللغة العربية.
-       قم بإرجاع JSON فقط بالتنسيق المحدد.`
+       قم بإرجاع JSON فقط بدون أي نص إضافي أو علامات markdown.`
     : `You are a medical services content expert. Create professional medical service content.
-       Return JSON only in the specified format.`;
+       Return ONLY valid JSON — no markdown code fences, no extra text, no backticks.`;
 
   const userPrompt = `Generate service content about: "${prompt}"
 
-  Return a JSON object with this exact structure:
+  Return VALID JSON ONLY — no markdown, no code fences, no extra text.
+  Use this exact structure:
   {
     "title": "Service title",
-    "subtitle": "Service tagline",
+    "subtitle": "Service tagline (1 sentence)",
     "excerpt": "Brief service description (2-3 sentences)",
-    "content": "Detailed service description in HTML format",
+    "content": "Detailed service description in rich HTML with <h2>, <p>, <ul>/<li> tags",
     "features": ["Feature 1", "Feature 2", "Feature 3", "Feature 4"],
     "offerings": [
       { "title": "Offering 1", "description": "Description of offering 1" },
@@ -96,6 +101,7 @@ async function generateServiceContent(prompt, language = 'en') {
       { "question": "Common question 3?", "answer": "Answer to question 3" }
     ],
     "tags": ["tag1", "tag2", "tag3"],
+    "slug": "url-safe-slug-derived-from-title-lowercase-hyphens-only",
     "seo": {
       "metaTitle": "SEO optimized title (max 60 chars)",
       "metaDescription": "SEO meta description (max 160 chars)",
