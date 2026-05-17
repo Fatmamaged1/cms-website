@@ -60,9 +60,6 @@ exports.getAllCareers = async (req, res, next) => {
 const enhancedCareers = careers.map(career => {
       const data = career.toObject();
 
-      // رابط كامل
-      data.url = `${req.protocol}://${req.get("host")}/uploads/images/${path.basename(data.url)}`;
-
       return data;
     });
 

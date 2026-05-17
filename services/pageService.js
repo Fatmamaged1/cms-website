@@ -382,14 +382,36 @@ class PageService {
 
   // ------------------ GET PAGE BY TYPE ------------------
   static async getPageByType(pageType, language) {
-    const page = await PageContent.findOne({ pageType, language, isActive: true });
+    const page = await PageContent.findOne({ pageType, language, isActive: true })
+      .populate({
+        path: 'sections.blog.featuredBlogs',
+        model: 'Blog',
+        select: 'title subtitle excerpt thumbnail slug featuredImage createdAt'
+      })
+      .populate({
+        path: 'sections.services.featuredServices',
+        model: 'Service',
+        select: 'title subtitle icon thumbnail slug featuredImage'
+      })
+      .lean();
     if (!page) throw new NotFoundError('Page not found');
     return page;
   }
 
   // ------------------ GET PAGE BY ID ------------------
   static async getPageById(id, language) {
-    const page = await PageContent.findOne({ _id: id, language, isActive: true });
+    const page = await PageContent.findOne({ _id: id, language, isActive: true })
+      .populate({
+        path: 'sections.blog.featuredBlogs',
+        model: 'Blog',
+        select: 'title subtitle excerpt thumbnail slug featuredImage createdAt'
+      })
+      .populate({
+        path: 'sections.services.featuredServices',
+        model: 'Service',
+        select: 'title subtitle icon thumbnail slug featuredImage'
+      })
+      .lean();
     if (!page) throw new NotFoundError('Page not found');
     return page;
   }
