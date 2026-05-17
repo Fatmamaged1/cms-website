@@ -178,27 +178,43 @@ exports.updateCareer = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    // ✅ slug update
-    if (req.body.title) {
-      req.body.slug = slugify(req.body.title, { lower: true });
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid career ID format"
+      });
     }
 
-    // ✅ deadline update
-    if (req.body.applicationDeadline) {
-      req.body.applicationDeadline = new Date(req.body.applicationDeadline);
-    }
-    // ✅ تحديث الوظيفة
-    const career = await Career.findByIdAndUpdate(id, req.body, {
-      new: true,
-      runValidators: true
-    });
-
+    const career = await Career.findById(id);
     if (!career) {
       return res.status(404).json({
         success: false,
         message: "الوظيفة غير موجودة"
       });
     }
+
+    const allowedFields = [
+      'title', 'department', 'jobType', 'workType', 'location',
+      'experienceLevel', 'requiredSkills', 'preferredSkills',
+      'salary', 'description', 'requirements', 'responsibilities',
+      'benefits', 'applicationDeadline', 'applicationUrl',
+      'status', 'language', 'seo'
+    ];
+
+    for (const field of allowedFields) {
+      if (req.body[field] !== undefined) {
+        if (field === 'title' && req.body.title) {
+          career.title = req.body.title;
+          career.slug = slugify(req.body.title, { lower: true });
+        } else if (field === 'applicationDeadline') {
+          career.applicationDeadline = new Date(req.body.applicationDeadline);
+        } else {
+          career[field] = req.body[field];
+        }
+      }
+    }
+
+    await career.save();
 
     return res.json({
       success: true,
@@ -240,6 +256,10 @@ exports.deleteCareer = async (req, res, next) => {
 exports.getAllApplicationsByCarrerId = async (req, res, next) => {
   try {
     const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ success: false, message: "Invalid career ID format" });
+    }
 
     // ✅ تأكد إن الكارير موجود
     const career = await Career.findById(id);
