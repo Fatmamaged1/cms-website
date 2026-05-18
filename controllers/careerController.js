@@ -261,14 +261,13 @@ exports.getAllApplicationsByCarrerId = async (req, res, next) => {
       return res.status(400).json({ success: false, message: "Invalid career ID format" });
     }
 
-    // ✅ تأكد إن الكارير موجود
     const career = await Career.findById(id);
     if (!career) {
       return res.status(404).json({ success: false, message: "Career not found" });
     }
 
     const applications = await JobApplication.find({ job: id })
-      .populate("job", "title slug") // ✅ يجيب العنوان والـ slug
+      .populate("job", "title slug")
       .lean();
 
     const enhancedApplications = applications.map(app => ({
@@ -282,6 +281,49 @@ exports.getAllApplicationsByCarrerId = async (req, res, next) => {
       success: true,
       count: enhancedApplications.length,
       data: enhancedApplications
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Get single application by ID
+exports.getApplicationById = async (req, res, next) => {
+  try {
+    const { id, applicationId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ success: false, message: "Invalid career ID format" });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(applicationId)) {
+      return res.status(400).json({ success: false, message: "Invalid application ID format" });
+    }
+
+    const career = await Career.findById(id);
+    if (!career) {
+      return res.status(404).json({ success: false, message: "Career not found" });
+    }
+
+    const application = await JobApplication.findOne({ _id: applicationId, job: id })
+      .populate("job", "title slug _id")
+      .lean();
+
+    if (!application) {
+      return res.status(404).json({ success: false, message: "Application not found" });
+    }
+
+    // Build full resume URL
+    const enhancedApplication = {
+      ...application,
+      resume: application.resume
+        ? `${req.protocol}://${req.get("host")}/${path.basename(application.resume)}`
+        : null
+    };
+
+    return res.json({
+      success: true,
+      data: enhancedApplication
     });
   } catch (error) {
     next(error);

@@ -230,9 +230,7 @@ router.post(
           offerings: parsedOfferings,
           steps: parsedSteps,
           faq: parsedFaq,
-          featuredImage: req.file
-          ? `${req.protocol}://${req.get('host')}/${req.file.filename.replace(/\\/g, '/').replace('public/', '')}`
-          : null,
+          featuredImage: req.body.featuredImage || null,
           language: req.language,
           createdBy: userId,
         };
@@ -305,8 +303,8 @@ router.put(
       let oldImageUrl = existingService.featuredImage;
       
       // If a new image is being uploaded
-      if (req.file) {
-        updateData.featuredImage = `${req.protocol}://${req.get('host')}/${req.file.filename}`;
+      if (req.file && req.body.featuredImage) {
+        updateData.featuredImage = req.body.featuredImage;
       }
       
       // Don't allow changing the slug directly

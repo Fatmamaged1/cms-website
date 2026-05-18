@@ -22,6 +22,7 @@ router.delete("/:id", protect, authorize("admin"), careerController.deleteCareer
 
 // Admin: applications inbox
 router.get("/:id/applications", protect, authorize("admin"), careerController.getAllApplicationsByCarrerId);
+router.get("/:id/applications/:applicationId", protect, authorize("admin"), careerController.getApplicationById);
 router.patch(
   "/:id/applications/:applicationId",
   protect,

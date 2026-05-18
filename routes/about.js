@@ -9,7 +9,7 @@ const path = require('path');
 // Multer setup
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, '../public/uploads'));
+    cb(null, path.join(__dirname, '../public/uploads/images'));
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -20,14 +20,30 @@ const upload = multer({ storage });
 
 // Routes
 router.get('/', aboutController.getAbout);
-// Support both old 'image' field and new dashboard fields (proudImage, missionImage, visionImage)
+
+// Section-level update
+router.put(
+  '/sections/:sectionKey',
+  protect,
+  authorize('admin'),
+  upload.fields([
+    { name: 'image', maxCount: 1 },
+    { name: 'ceo_image', maxCount: 1 },
+    { name: 'ourStory_image_light', maxCount: 1 },
+    { name: 'ourStory_image_dark', maxCount: 1 },
+  ]),
+  aboutController.updateAboutSection
+);
+
+// Full page update
 router.put('/', protect, authorize('admin'), upload.fields([
   { name: 'image', maxCount: 1 },
   { name: 'proudImage', maxCount: 1 },
   { name: 'missionImage', maxCount: 1 },
-  { name: 'visionImage', maxCount: 1 }
+  { name: 'visionImage', maxCount: 1 },
+  { name: 'ceo_image', maxCount: 1 },
+  { name: 'ourStory_image_light', maxCount: 1 },
+  { name: 'ourStory_image_dark', maxCount: 1 },
 ]), aboutController.updateAbout);
-
-
 
 module.exports = router;

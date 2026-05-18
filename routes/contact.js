@@ -221,7 +221,6 @@ router.post(
   validateRequest,
   async (req, res) => {
     const { id } = req.params;
-    // Support both 'message' and 'content' field names for compatibility
     const message = req.body.message || req.body.content;
     const { subject } = req.body;
 
@@ -235,13 +234,26 @@ router.post(
       throw new NotFoundError('Submission not found');
     }
 
-    // Update submission with reply info
+    // Append to reply history
+    submission.replies.push({
+      message,
+      sentBy: req.user._id,
+      sentAt: new Date(),
+      subject: subject || `Re: ${submission.subject}`
+    });
+
+    // Also update the legacy single response field
     submission.response = {
       message,
       respondedBy: req.user._id,
       respondedAt: new Date()
     };
-    submission.status = 'resolved';
+
+    // Auto-set status to in-progress if still new
+    if (submission.status === 'new') {
+      submission.status = 'in-progress';
+    }
+
     await submission.save();
 
     // Send reply email
@@ -260,7 +272,6 @@ router.post(
       );
     } catch (err) {
       console.error('Error sending reply email:', err);
-      // Don't fail the request if email fails
     }
 
     res.json({

@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const morgan = require('morgan');
 const compression = require('compression');
 const path = require('path');
+const fs = require('fs');
 const mongoSanitize = require('express-mongo-sanitize');
 const cookieParser = require('cookie-parser');
 
@@ -29,8 +30,15 @@ app.set('trust proxy', 1);
 // ===== CORS =====
 const cors = require('cors');
 const allowedOrigins = process.env.ALLOWED_ORIGINS 
-  ? process.env.ALLOWED_ORIGINS.split(',') 
-  : ['http://localhost:3000', 'http://localhost:3001'];
+  ? process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim()) 
+  : [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://localhost:5173',
+      'https://admin.premedsolution.com',
+      'https://premedsolution.com',
+      'https://www.premedsolution.com',
+    ];
 
 app.use(cors({
   origin: function (origin, callback) {
@@ -126,10 +134,33 @@ app.use('/api/v1/privacy-policy', privacyRoutes);
 app.use('/api/v1/ai', aiRoutes);
 
 // ===== Static Files =====
-app.use(express.static(path.join(__dirname,'public/uploads/images')));
-app.use(express.static(path.join(__dirname,'public/uploads/files')));
-app.use('/uploads/images', express.static(path.join(__dirname,'public/uploads/images')));
-app.use('/uploads/files', express.static(path.join(__dirname,'public/uploads/files')));
+// Allow cross-origin image loading from admin dashboard
+const uploadCors = (req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Vary', 'Origin');
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  next();
+};
+
+// Fallback for legacy uploads saved to public/uploads/ instead of public/uploads/images/
+app.get('/uploads/images/:filename', uploadCors, (req, res, next) => {
+  const filename = path.basename(req.params.filename);
+  const primary = path.join(__dirname, 'public/uploads/images', filename);
+  const legacy = path.join(__dirname, 'public/uploads', filename);
+
+  if (fs.existsSync(primary)) return res.sendFile(primary);
+  if (fs.existsSync(legacy)) return res.sendFile(legacy);
+  next();
+});
+
+app.use('/uploads', uploadCors, express.static(path.join(__dirname, 'public/uploads')));
+app.use('/uploads/images', uploadCors, express.static(path.join(__dirname, 'public/uploads/images')));
+app.use('/uploads/files', uploadCors, express.static(path.join(__dirname, 'public/uploads/files')));
 
 // Serve React build in production
 if (process.env.NODE_ENV === 'production') {

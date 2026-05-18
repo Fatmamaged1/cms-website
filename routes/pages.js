@@ -14,6 +14,55 @@ router.use((req, res, next) => {
 
 // Home page routes
 router.get('/home', pageController.getHomePage);
+
+// Section CRUD routes (MUST be before /:pageType to avoid conflicts)
+router.put(
+  '/home/sections/:sectionKey',
+  protect,
+  authorize('admin'),
+  handleMultipleUploads([
+    { name: 'hero_backgroundImage', maxCount: 1 },
+    { name: 'about_image', maxCount: 1 },
+    { name: 'services_backgroundImage', maxCount: 1 },
+    { name: 'ceo_image', maxCount: 1 },
+    { name: 'ourStory_image_light', maxCount: 1 },
+    { name: 'ourStory_image_dark', maxCount: 1 },
+    { name: 'freedom_image', maxCount: 1 },
+    { name: 'image', maxCount: 1 },
+    { name: 'backgroundImage', maxCount: 1 },
+    { name: 'logo', maxCount: 1 }
+  ]),
+  parseFormDataJson(['sectionData', 'seo']),
+  pageController.updateSection
+);
+
+router.post(
+  '/home/sections',
+  protect,
+  authorize('admin'),
+  handleMultipleUploads([
+    { name: 'image', maxCount: 1 },
+    { name: 'backgroundImage', maxCount: 1 },
+    { name: 'logo', maxCount: 1 }
+  ]),
+  parseFormDataJson(['sectionData']),
+  pageController.addSection
+);
+
+router.delete(
+  '/home/sections/:sectionKey',
+  protect,
+  authorize('admin'),
+  pageController.deleteSection
+);
+
+router.post(
+  '/home/sections/reorder',
+  protect,
+  authorize('admin'),
+  pageController.reorderSections
+);
+
 router.put(
   '/home',
   protect,

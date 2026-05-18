@@ -1,7 +1,7 @@
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-//const { v4: uuidv4 } = require('uuid');
+const { buildImageUrl, buildFileUrl } = require('../../utils/imageUrl');
 
 // Ensure upload directories exist
 const uploadDir = path.join(process.cwd(), 'public/uploads/');
@@ -82,18 +82,9 @@ const handleUpload = (fieldName = 'image', type = 'image') => {
   
        
         if (req.file) {
-          // Use path.relative() to get the path relative to the public directory
-          let relativePath;
-          if(type === 'image'){
-          relativePath = path.relative(path.join(process.cwd(), 'public/'),"uploads/images/"+ req.file.filename);
-          }
-          else{
-            relativePath = path.relative(path.join(process.cwd(), 'public/'), "uploads/files/"+ req.file.filename);
-          }
-          // Construct the full URL using the relative path
-          const fileUrl = `${process.env.BASE_URL || `${req.protocol}://${req.get('host')}/`}${relativePath.replace(/\\/g, '/')}`;
-
-          // Assign the final URL to the request body
+          const fileUrl = type === 'image'
+            ? buildImageUrl(req, req.file.filename)
+            : buildFileUrl(req, req.file.filename);
           req.body[fieldName] = fileUrl;
       }
   
@@ -123,14 +114,9 @@ const handleMultipleUploads = (fieldsArray, type = 'image') => {
       if (req.files) {
         for (const field in req.files) {
           req.body[field] = req.files[field].map(file => {
-            let relativePath;
-            if(type === 'image'){
-            relativePath = path.relative(path.join(process.cwd(), 'public/'),"uploads/images/"+ file.filename);
-            }
-            else{
-              relativePath = path.relative(path.join(process.cwd(), 'public/'), "uploads/files/"+ file.filename);
-            }
-            return `${process.env.BASE_URL || `${req.protocol}://${req.get('host')}/`}${relativePath.replace(/\\/g, '/')}`;
+            return type === 'image'
+              ? buildImageUrl(req, file.filename)
+              : buildFileUrl(req, file.filename);
           });
         }
       }

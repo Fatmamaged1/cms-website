@@ -17,7 +17,9 @@ const DEFAULT_HOME_STRUCTURE = {
       title: 'Innovative Medical Solutions for a Healthier Tomorrow',
       subtitle: 'Partnering with healthcare providers to bring quality, safety, and confidence to every procedure.',
       backgroundImage: '/images/hero-bg.jpg',
-      primaryButton: { text: 'Discover Services', url: '/services' }
+      primaryButton: { text: 'Discover Services', url: '/services' },
+      isActive: true,
+      sortOrder: 0
     },
     about: {
       title: 'Your Trusted Medical Partner in Saudi Arabia',
@@ -32,14 +34,64 @@ const DEFAULT_HOME_STRUCTURE = {
           }
         ]
       },
-      features: []
+      features: [],
+      isActive: true,
+      sortOrder: 1
+    },
+    features: [],
+    ceo: {
+      title: 'CEO Message',
+      name: 'Dr. Islam Ali',
+      role: 'President and Chief Executive Officer',
+      quote: 'At PRE-MED, we exist to elevate surgical care...',
+      message: 'From day one...',
+      image: '/Images/AboutUs/ceo-light.jpeg',
+      isActive: true,
+      sortOrder: 3
+    },
+    stats: [
+      { title: "10+", subtitle: "Years Experience", content: "A decade of serving patients", order: 0 },
+      { title: "50+", subtitle: "Partner Hospitals", content: "Leading healthcare facilities", order: 1 },
+      { title: "1000+", subtitle: "Surgical Procedures", content: "Empowering successful operations", order: 2 },
+      { title: "100%", subtitle: "Client Satisfaction", content: "Dedicated support and clinical care", order: 3 },
+      { title: "20+", subtitle: "Global Brands", content: "World-class orthopedic systems", order: 4 },
+      { title: "24/7", subtitle: "Clinical Support", content: "Always beside our partners", order: 5 }
+    ],
+    ourStory: {
+      title: 'Our Story',
+      subtitle: 'Driven by Purpose, Guided by Care',
+      description: 'PRE-MED was established with a singular vision...',
+      howWeGrew: {
+        title: 'How We Grew:',
+        bullets: ['Expanding standard clinical expertise.', 'Deploying state-of-the-art orthopedic systems.', 'Expanding presence to cover 20+ specialized hospitals.']
+      },
+      image: {
+        light: { url: '/Images/AboutUs/ceo-light.jpeg', alt: '' },
+        dark: { url: '/Images/AboutUs/ceo-dark.jpeg', alt: '' }
+      },
+      isActive: true,
+      sortOrder: 5
+    },
+    freedom: {
+      title: 'Reclaim Your Freedom of Motion',
+      image: '/Images/Home/new/Frame 124.webp',
+      isActive: true,
+      sortOrder: 6
     },
     services: {
-      title: 'Our Services',
-      subtitle: 'What We Offer',
-      featuredServices: []
+      title: 'Our Products & Services',
+      subtitle: 'Exploring our modern orthopedic solutions...',
+      featuredServices: [],
+      isActive: true,
+      sortOrder: 7
     },
-    //SAMPLEDATA 
+    blog: {
+      title: 'Our Blog',
+      subtitle: 'Latest News and Updates',
+      featuredBlogs: [],
+      isActive: true,
+      sortOrder: 8
+    },
     clients:[
       { name: "King Fahd Medical City", logo: "https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=400" },
       { name: "Saudi German Hospital", logo: "https://images.unsplash.com/photo-1581092919535-6c87c1dc42a4?w=400" },
@@ -67,39 +119,32 @@ const DEFAULT_HOME_STRUCTURE = {
       { name: "New Kasr El Ainy Hospital", logo: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400" },
       { name: "Pre Med Research Center", logo: "https://images.unsplash.com/photo-1583912267557-5f43a44f2c2d?w=400" }
     ],
-    blog: {
-      title: 'Our Blog',
-      subtitle: 'Latest News and Updates',
-      featuredBlogs: []
-    },
-    features: []
   }
 };
 
 class PageService {
 
   // ------------------ GET HOME PAGE ------------------
-  static async getHomePage(language) {
+  static async getHomePage(language, options = {}) {
     try {
-      console.log('[getHomePage] Fetching home page for language:', language);
+      const { includeInactive = false } = options;
+      console.log('[getHomePage] Fetching home page for language:', language, 'includeInactive:', includeInactive);
 
-      // First try to get the home page with populated data
       let homePage = await PageContent.findOne({ pageType: 'home', language })
         .populate({
           path: 'sections.blog.featuredBlogs',
           model: 'Blog',
-          select: 'title subtitle excerpt thumbnail slug featuredImage createdAt' // Only select necessary fields
+          select: 'title subtitle excerpt thumbnail slug featuredImage createdAt'
         })
         .populate({
           path: 'sections.services.featuredServices',
           model: 'Service',
-          select: 'title subtitle icon thumbnail slug featuredImage' // Only select necessary fields
+          select: 'title subtitle icon thumbnail slug featuredImage'
         })
-        .lean(); // Convert to plain JavaScript object
+        .lean();
 
       console.log('[getHomePage] Found document:', homePage ? 'YES' : 'NO');
 
-      // If no home page exists, create one with default structure
       if (!homePage) {
         homePage = await PageContent.create({
           ...DEFAULT_HOME_STRUCTURE,
@@ -108,56 +153,66 @@ class PageService {
           language,
           isActive: true
         });
-        // Convert to plain object
         homePage = homePage.toObject();
       }
 
-      // Get all active services
       const services = await Service.find({ isActive: true, language })
         .select('title subtitle icon thumbnail slug featuredImage')
         .sort({ order: 1 })
         .lean();
 
-      // Get latest blog posts if none are featured
       let featuredBlogs = homePage.sections?.blog?.featuredBlogs || [];
       if (!featuredBlogs || featuredBlogs.length === 0) {
         featuredBlogs = await Blog.find({ isActive: true, language })
-          .sort({ createdAt: -1 }) // Get most recent first
+          .sort({ createdAt: -1 })
           .select('title subtitle excerpt thumbnail slug featuredImage createdAt')
-          .limit(3) // Limit to 3 blog posts
+          .limit(3)
           .lean();
       }
 
-      // Helper function to extract image objects cleanly
       const getImageObject = (img, defaultUrl = "") => {
         if (!img) return { url: defaultUrl, alt: "" };
         if (typeof img === 'string') return { url: img, alt: "" };
         return { url: img.url || defaultUrl, alt: img.alt || "" };
       };
 
-      // Extract sections with robust dynamic fallbacks
-      const hero = {
+      const ensureSectionMeta = (section, defaultSortOrder) => {
+        if (!section || typeof section !== 'object' || Array.isArray(section)) return section;
+        return {
+          ...section,
+          isActive: section.isActive !== undefined ? section.isActive : true,
+          sortOrder: section.sortOrder !== undefined ? section.sortOrder : defaultSortOrder
+        };
+      };
+
+      const hero = ensureSectionMeta({
         title: homePage.sections?.hero?.title || "Innovative Medical Solutions for a Healthier Tomorrow",
         subtitle: homePage.sections?.hero?.subtitle || "Partnering with healthcare providers to bring quality, safety, and confidence to every procedure.",
         backgroundImage: getImageObject(homePage.sections?.hero?.backgroundImage, "/images/hero-bg.jpg"),
         ctaText: homePage.sections?.hero?.ctaText || "Discover Services",
-        ctaLink: homePage.sections?.hero?.ctaLink || "/services"
-      };
+        ctaLink: homePage.sections?.hero?.ctaLink || "/services",
+        isActive: homePage.sections?.hero?.isActive,
+        sortOrder: homePage.sections?.hero?.sortOrder
+      }, 0);
 
-      const about = {
+      const about = ensureSectionMeta({
         title: homePage.sections?.about?.title || "Your Trusted Medical Partner in Saudi Arabia",
         description: homePage.sections?.about?.description || "At Premium Medical Solutions Co., we are dedicated to transforming patient care across Saudi Arabia...",
-        image: getImageObject(homePage.sections?.about?.image, "/images/about.jpg")
-      };
+        image: getImageObject(homePage.sections?.about?.image, "/images/about.jpg"),
+        isActive: homePage.sections?.about?.isActive,
+        sortOrder: homePage.sections?.about?.sortOrder
+      }, 1);
 
-      const ceo = {
+      const ceo = ensureSectionMeta({
         title: homePage.sections?.ceo?.title || "CEO Message",
         name: homePage.sections?.ceo?.name || "Dr. Islam Ali",
         role: homePage.sections?.ceo?.role || "President and Chief Executive Officer",
         quote: homePage.sections?.ceo?.quote || "At PRE-MED, we exist to elevate surgical care in Saudi Arabia through trust, expertise, and meaningful partnerships.",
         message: homePage.sections?.ceo?.message || "From day one, we set out to build more than a distribution business...",
-        image: getImageObject(homePage.sections?.ceo?.image, "/Images/AboutUs/ceo-light.jpeg")
-      };
+        image: getImageObject(homePage.sections?.ceo?.image, "/Images/AboutUs/ceo-light.jpeg"),
+        isActive: homePage.sections?.ceo?.isActive,
+        sortOrder: homePage.sections?.ceo?.sortOrder
+      }, 3);
 
       const features = homePage.sections?.features && homePage.sections.features.length > 0 ? homePage.sections.features : [
         { title: "Vision", subtitle: "Our Vision", content: "To be the leading provider of innovative orthopedic and surgical solutions...", order: 0 },
@@ -174,7 +229,7 @@ class PageService {
         { title: "24/7", subtitle: "Clinical Support", content: "Always beside our partners", order: 5 }
       ];
 
-      const ourStory = {
+      const ourStory = ensureSectionMeta({
         title: homePage.sections?.ourStory?.title || "Our Story",
         subtitle: homePage.sections?.ourStory?.subtitle || "Driven by Purpose, Guided by Care",
         description: homePage.sections?.ourStory?.description || "PRE-MED was established with a singular vision...",
@@ -189,29 +244,76 @@ class PageService {
         image: {
           light: getImageObject(homePage.sections?.ourStory?.image?.light, "/Images/AboutUs/ceo-light.jpeg"),
           dark: getImageObject(homePage.sections?.ourStory?.image?.dark, "/Images/AboutUs/ceo-dark.jpeg")
-        }
-      };
+        },
+        isActive: homePage.sections?.ourStory?.isActive,
+        sortOrder: homePage.sections?.ourStory?.sortOrder
+      }, 5);
 
-      const freedom = {
+      const freedom = ensureSectionMeta({
         title: homePage.sections?.freedom?.title || "Reclaim Your Freedom of Motion",
-        image: getImageObject(homePage.sections?.freedom?.image, "/Images/Home/new/Frame 124.webp")
-      };
+        image: getImageObject(homePage.sections?.freedom?.image, "/Images/Home/new/Frame 124.webp"),
+        isActive: homePage.sections?.freedom?.isActive,
+        sortOrder: homePage.sections?.freedom?.sortOrder
+      }, 6);
 
-      const servicesSection = {
+      const servicesSection = ensureSectionMeta({
         title: homePage.sections?.services?.title || "Our Products & Services",
         subtitle: homePage.sections?.services?.subtitle || "Exploring our modern orthopedic solutions...",
-        featuredServices: services
-      };
+        featuredServices: services,
+        isActive: homePage.sections?.services?.isActive,
+        sortOrder: homePage.sections?.services?.sortOrder
+      }, 7);
 
-      const blogSection = {
+      const blogSection = ensureSectionMeta({
         title: homePage.sections?.blog?.title || "Our Blog",
         subtitle: homePage.sections?.blog?.subtitle || "Latest News and Updates",
-        featuredBlogs
+        featuredBlogs,
+        isActive: homePage.sections?.blog?.isActive,
+        sortOrder: homePage.sections?.blog?.sortOrder
+      }, 8);
+
+      const clientsMeta = homePage.sections?.clients || [];
+      const clients = Array.isArray(clientsMeta) ? clientsMeta : DEFAULT_HOME_STRUCTURE.sections.clients;
+
+      // Build all sections with their sortOrder
+      const allSections = {
+        hero,
+        about,
+        features,
+        ceo,
+        stats,
+        ourStory,
+        freedom,
+        services: servicesSection,
+        blog: blogSection,
+        clients
       };
 
-      const clients = homePage.sections?.clients || DEFAULT_HOME_STRUCTURE.sections.clients;
+      // Add isActive/sortOrder to array-type sections (features, stats, clients)
+      if (!allSections.features.isActive) allSections.features.isActive = true;
+      if (!allSections.features.sortOrder && allSections.features.sortOrder !== 0) allSections.features.sortOrder = 2;
+      if (!allSections.stats.isActive) allSections.stats.isActive = true;
+      if (!allSections.stats.sortOrder && allSections.stats.sortOrder !== 0) allSections.stats.sortOrder = 4;
+      if (!allSections.clients.isActive) allSections.clients.isActive = true;
+      if (!allSections.clients.sortOrder && allSections.clients.sortOrder !== 0) allSections.clients.sortOrder = 9;
 
-      // Construct the response matching the exact response shape
+      // Filter out inactive sections for public API
+      const sectionsToReturn = includeInactive ? allSections : Object.fromEntries(
+        Object.entries(allSections).filter(([key, value]) => {
+          if (Array.isArray(value)) return value.isActive !== false;
+          return value.isActive !== false;
+        })
+      );
+
+      // Sort sections by sortOrder (for the response we return an ordered object)
+      const sortedSectionEntries = Object.entries(sectionsToReturn).sort((a, b) => {
+        const aOrder = Array.isArray(a[1]) ? (a[1].sortOrder ?? 99) : (a[1].sortOrder ?? 99);
+        const bOrder = Array.isArray(b[1]) ? (b[1].sortOrder ?? 99) : (b[1].sortOrder ?? 99);
+        return aOrder - bOrder;
+      });
+
+      const sortedSections = Object.fromEntries(sortedSectionEntries);
+
       return {
         _id: homePage._id,
         pageType: homePage.pageType,
@@ -219,18 +321,7 @@ class PageService {
         language: homePage.language,
         isActive: homePage.isActive,
         seo: homePage.seo || DEFAULT_HOME_STRUCTURE.seo,
-        sections: {
-          hero,
-          about,
-          ceo,
-          features,
-          stats,
-          ourStory,
-          freedom,
-          services: servicesSection,
-          blog: blogSection,
-          clients
-        }
+        sections: sortedSections
       };
     } catch (error) {
       console.error('Error in getHomePage:', error);
@@ -378,6 +469,272 @@ class PageService {
 
     console.log('[updateHomePage] Saved document sections:', JSON.stringify(homePage?.sections, null, 2));
     return homePage;
+  }
+
+  // ------------------ UPDATE SECTION ------------------
+  static async updateSection(language, sectionKey, data, files, req) {
+    console.log('[updateSection] Language:', language, 'Section:', sectionKey);
+
+    let homePage = await PageContent.findOne({ pageType: 'home', language });
+    if (!homePage) {
+      homePage = await PageContent.create({
+        ...DEFAULT_HOME_STRUCTURE,
+        pageType: 'home',
+        slug: 'home',
+        language,
+        isActive: true
+      });
+    }
+
+    const existingSections = homePage.sections?.toObject?.() || homePage.sections || {};
+    const sectionData = data.sectionData || {};
+
+    // Parse JSON string if sectionData is a string
+    let parsedData = sectionData;
+    if (typeof sectionData === 'string') {
+      try {
+        parsedData = JSON.parse(sectionData);
+      } catch (e) {
+        console.error('[updateSection] Error parsing sectionData:', e.message);
+        parsedData = {};
+      }
+    }
+
+    // Handle uploaded files
+    if (files) {
+      const protocol = req.protocol;
+      const host = req.get('host');
+
+      for (const [field, fileArr] of Object.entries(files)) {
+        if (Array.isArray(fileArr) && fileArr.length > 0) {
+          const file = fileArr[0];
+          const url = `${protocol}://${host}/uploads/images/${file.filename}`;
+          const fileObj = {
+            url,
+            alt: file.originalname || '',
+            size: file.size || 0,
+            mimeType: file.mimetype || '',
+            uploadedAt: new Date()
+          };
+
+          // Map field name to section property
+          if (field === 'image') {
+            parsedData.image = fileObj;
+          } else if (field === 'backgroundImage') {
+            parsedData.backgroundImage = fileObj;
+          } else if (field === 'logo') {
+            parsedData.logo = fileObj;
+          } else {
+            parsedData[field] = fileObj;
+          }
+        }
+      }
+    }
+
+    // Handle array fields passed as JSON strings
+    for (const [key, value] of Object.entries(parsedData)) {
+      if (typeof value === 'string' && (value.startsWith('[') || value.startsWith('{'))) {
+        try {
+          parsedData[key] = JSON.parse(value);
+        } catch (e) {
+          // Not JSON, keep as string
+        }
+      }
+    }
+
+    // Merge with existing section data
+    const existingSection = existingSections[sectionKey];
+    let mergedSection;
+    if (Array.isArray(existingSection) && Array.isArray(parsedData)) {
+      mergedSection = parsedData;
+    } else if (typeof existingSection === 'object' && existingSection !== null && !Array.isArray(existingSection)) {
+      mergedSection = { ...existingSection, ...parsedData };
+    } else {
+      mergedSection = parsedData;
+    }
+
+    // Update the section
+    const updatedSections = { ...existingSections, [sectionKey]: mergedSection };
+
+    homePage = await PageContent.findByIdAndUpdate(
+      homePage._id,
+      { $set: { sections: updatedSections, updatedAt: new Date() } },
+      { new: true, runValidators: true }
+    );
+
+    console.log('[updateSection] Updated section:', sectionKey);
+    return homePage;
+  }
+
+  // ------------------ ADD SECTION ------------------
+  static async addSection(language, data, files, req) {
+    console.log('[addSection] Language:', language);
+
+    let homePage = await PageContent.findOne({ pageType: 'home', language });
+    if (!homePage) {
+      homePage = await PageContent.create({
+        ...DEFAULT_HOME_STRUCTURE,
+        pageType: 'home',
+        slug: 'home',
+        language,
+        isActive: true
+      });
+    }
+
+    const existingSections = homePage.sections?.toObject?.() || homePage.sections || {};
+    const sectionData = data.sectionData || {};
+
+    let parsedData = sectionData;
+    if (typeof sectionData === 'string') {
+      try {
+        parsedData = JSON.parse(sectionData);
+      } catch (e) {
+        console.error('[addSection] Error parsing sectionData:', e.message);
+        parsedData = {};
+      }
+    }
+
+    const sectionKey = parsedData.key || parsedData.sectionKey;
+    if (!sectionKey) {
+      throw new Error('Section key is required');
+    }
+
+    // Remove key/sectionKey from the data before storing
+    const { key, sectionKey: sk, ...sectionContent } = parsedData;
+
+    // Handle uploaded files
+    if (files) {
+      const protocol = req.protocol;
+      const host = req.get('host');
+
+      for (const [field, fileArr] of Object.entries(files)) {
+        if (Array.isArray(fileArr) && fileArr.length > 0) {
+          const file = fileArr[0];
+          const url = `${protocol}://${host}/uploads/images/${file.filename}`;
+          const fileObj = {
+            url,
+            alt: file.originalname || '',
+            size: file.size || 0,
+            mimeType: file.mimetype || '',
+            uploadedAt: new Date()
+          };
+
+          if (field === 'image') {
+            sectionContent.image = fileObj;
+          } else if (field === 'backgroundImage') {
+            sectionContent.backgroundImage = fileObj;
+          } else if (field === 'logo') {
+            sectionContent.logo = fileObj;
+          } else {
+            sectionContent[field] = fileObj;
+          }
+        }
+      }
+    }
+
+    // Handle array fields passed as JSON strings
+    for (const [key, value] of Object.entries(sectionContent)) {
+      if (typeof value === 'string' && (value.startsWith('[') || value.startsWith('{'))) {
+        try {
+          sectionContent[key] = JSON.parse(value);
+        } catch (e) {
+          // Not JSON, keep as string
+        }
+      }
+    }
+
+    // Add the new section
+    const updatedSections = { ...existingSections, [sectionKey]: sectionContent };
+
+    homePage = await PageContent.findByIdAndUpdate(
+      homePage._id,
+      { $set: { sections: updatedSections, updatedAt: new Date() } },
+      { new: true, runValidators: true }
+    );
+
+    console.log('[addSection] Added section:', sectionKey);
+    return homePage;
+  }
+
+  // ------------------ DELETE SECTION ------------------
+  static async deleteSection(language, sectionKey) {
+    console.log('[deleteSection] Language:', language, 'Section:', sectionKey);
+
+    const homePage = await PageContent.findOne({ pageType: 'home', language });
+    if (!homePage) {
+      throw new NotFoundError('Home page not found');
+    }
+
+    const existingSections = homePage.sections?.toObject?.() || homePage.sections || {};
+
+    // Check if section exists
+    if (!(sectionKey in existingSections)) {
+      throw new NotFoundError(`Section "${sectionKey}" not found`);
+    }
+
+    // Delete the section
+    delete existingSections[sectionKey];
+
+    const updatedPage = await PageContent.findByIdAndUpdate(
+      homePage._id,
+      { $set: { sections: existingSections, updatedAt: new Date() } },
+      { new: true, runValidators: true }
+    );
+
+    console.log('[deleteSection] Deleted section:', sectionKey);
+    return updatedPage;
+  }
+
+  // ------------------ REORDER SECTIONS ------------------
+  static async reorderSections(language, sectionKey, direction) {
+    console.log('[reorderSections] Language:', language, 'Section:', sectionKey, 'Direction:', direction);
+
+    const homePage = await PageContent.findOne({ pageType: 'home', language });
+    if (!homePage) throw new NotFoundError('Home page not found');
+
+    const existingSections = homePage.sections?.toObject?.() || homePage.sections || {};
+
+    // Get all section entries with their sortOrder
+    const sectionEntries = Object.entries(existingSections).map(([key, value]) => {
+      const sortOrder = Array.isArray(value) ? (value.sortOrder ?? 99) : (value?.sortOrder ?? 99);
+      return { key, sortOrder, value };
+    });
+
+    // Sort by sortOrder
+    sectionEntries.sort((a, b) => a.sortOrder - b.sortOrder);
+
+    // Find current section index
+    const currentIndex = sectionEntries.findIndex(entry => entry.key === sectionKey);
+    if (currentIndex === -1) throw new NotFoundError(`Section "${sectionKey}" not found`);
+
+    // Determine target index
+    const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+    if (targetIndex < 0 || targetIndex >= sectionEntries.length) {
+      throw new Error(`Cannot move section ${direction} — already at the ${direction === 'up' ? 'top' : 'bottom'}`);
+    }
+
+    // Swap sortOrder values
+    const tempOrder = sectionEntries[currentIndex].sortOrder;
+    sectionEntries[currentIndex].sortOrder = sectionEntries[targetIndex].sortOrder;
+    sectionEntries[targetIndex].sortOrder = tempOrder;
+
+    // Build updated sections object
+    const updatedSections = { ...existingSections };
+    for (const entry of sectionEntries) {
+      if (Array.isArray(entry.value)) {
+        updatedSections[entry.key] = { ...entry.value, sortOrder: entry.sortOrder };
+      } else if (typeof entry.value === 'object' && entry.value !== null) {
+        updatedSections[entry.key] = { ...entry.value, sortOrder: entry.sortOrder };
+      } else {
+        updatedSections[entry.key] = entry.value;
+      }
+    }
+
+    return await PageContent.findByIdAndUpdate(
+      homePage._id,
+      { $set: { sections: updatedSections, updatedAt: new Date() } },
+      { new: true, runValidators: true }
+    );
   }
 
   // ------------------ GET PAGE BY TYPE ------------------
