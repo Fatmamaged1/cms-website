@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { body, param } = require('express-validator');
 const { validateRequest, parseFormDataJson } = require('../middleware/validation');
-const { protect, authorize } = require('../middleware/auth');
+const { protect, authorize, optionalProtect } = require('../middleware/auth');
 const pageController = require('../controllers/homeController');
 const { handleMultipleUploads } = require('../services/upload/multerConfig');
 
@@ -13,7 +13,7 @@ router.use((req, res, next) => {
 });
 
 // Home page routes
-router.get('/home', pageController.getHomePage);
+router.get('/home', optionalProtect, pageController.getHomePage);
 
 // Section CRUD routes (MUST be before /:pageType to avoid conflicts)
 router.put(

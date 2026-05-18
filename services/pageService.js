@@ -3,6 +3,7 @@ const Service = require('../models/Service');
 const Blog = require('../models/Blog');
 const { NotFoundError } = require('../utils/errors');
 const AboutService = require('../services/AboutService');
+const { buildImageUrl } = require('../utils/imageUrl');
 const _ = require('lodash');
 
 const DEFAULT_HOME_STRUCTURE = {
@@ -408,7 +409,7 @@ class PageService {
         if (Array.isArray(fileArr) && fileArr.length > 0) {
           const file = fileArr[0];
           let fieldPath = fieldNameMapping[field] || field.replace(/\[/g, '.').replace(/\]/g, '');
-          const url = `${protocol}://${host}/uploads/images/${file.filename}`;
+          const url = buildImageUrl(req, file.filename);
 
           // Save as object with metadata
           _.set(sections, fieldPath, {
@@ -508,7 +509,7 @@ class PageService {
       for (const [field, fileArr] of Object.entries(files)) {
         if (Array.isArray(fileArr) && fileArr.length > 0) {
           const file = fileArr[0];
-          const url = `${protocol}://${host}/uploads/images/${file.filename}`;
+          const url = buildImageUrl(req, file.filename);
           const fileObj = {
             url,
             alt: file.originalname || '',
@@ -610,7 +611,7 @@ class PageService {
       for (const [field, fileArr] of Object.entries(files)) {
         if (Array.isArray(fileArr) && fileArr.length > 0) {
           const file = fileArr[0];
-          const url = `${protocol}://${host}/uploads/images/${file.filename}`;
+          const url = buildImageUrl(req, file.filename);
           const fileObj = {
             url,
             alt: file.originalname || '',

@@ -6,7 +6,7 @@ const { validateRequest, parseFormDataJson } = require('../middleware/validation
 const { protect, authorize } = require('../middleware/auth');
 const Service = require('../models/Service');
 const { NotFoundError, BadRequestError } = require('../utils/errors');
-const { handleUpload, fileService } = require('../services/upload');
+const { handleUpload, handleMultipleUploads, fileService } = require('../services/upload');
 const { processContentUploads, cleanupOrphanedFiles } = require('../middleware/contentUpload');
 const Partner = require('../models/Partner');
 
@@ -192,7 +192,10 @@ router.post(
     '/',
     protect,
     authorize('admin'),
-    handleUpload('featuredImage'),
+    handleMultipleUploads([
+      { name: 'featuredImage', maxCount: 1 },
+      { name: 'thumbnail', maxCount: 1 }
+    ]),
   parseFormDataJson(['categories', 'tags', 'seo', 'featured', 'isActive', 'features', 'offerings', 'steps', 'faq']),
     [
       body('title').trim().notEmpty().withMessage('Title is required'),
@@ -230,7 +233,8 @@ router.post(
           offerings: parsedOfferings,
           steps: parsedSteps,
           faq: parsedFaq,
-          featuredImage: req.body.featuredImage || null,
+          featuredImage: Array.isArray(req.body.featuredImage) ? req.body.featuredImage[0] : (req.body.featuredImage || null),
+          thumbnail: Array.isArray(req.body.thumbnail) ? req.body.thumbnail[0] : (req.body.thumbnail || null),
           language: req.language,
           createdBy: userId,
         };
@@ -243,8 +247,9 @@ router.post(
         });
       } catch (error) {
         // حذف الصورة إذا حصل خطأ
-        if (req.file) {
-          await fileService.deleteFileByUrl(req.file.filename);
+        const allFiles = req.files ? Object.values(req.files).flat() : (req.file ? [req.file] : []);
+        for (const f of allFiles) {
+          await fileService.deleteFileByUrl(f.filename).catch(() => {});
         }
         next(error);
       }
@@ -256,7 +261,10 @@ router.put(
   '/:id',
   protect,
   authorize('admin'),
-  handleUpload('featuredImage'),
+  handleMultipleUploads([
+    { name: 'featuredImage', maxCount: 1 },
+    { name: 'thumbnail', maxCount: 1 }
+  ]),
   processContentUploads, // Process any file uploads in content blocks
   parseFormDataJson(['categories', 'tags', 'seo', 'featured', 'isActive']),
   [
@@ -301,10 +309,14 @@ router.put(
       }
       
       let oldImageUrl = existingService.featuredImage;
+      let oldThumbnailUrl = existingService.thumbnail;
       
-      // If a new image is being uploaded
-      if (req.file && req.body.featuredImage) {
-        updateData.featuredImage = req.body.featuredImage;
+      // Handle uploaded files — handleMultipleUploads puts URLs as arrays in req.body
+      if (Array.isArray(req.body.featuredImage)) {
+        updateData.featuredImage = req.body.featuredImage[0];
+      }
+      if (Array.isArray(req.body.thumbnail)) {
+        updateData.thumbnail = req.body.thumbnail[0];
       }
       
       // Don't allow changing the slug directly
@@ -326,9 +338,12 @@ router.put(
         { new: true, runValidators: true }
       );
       
-      // Clean up old image if it was replaced
+      // Clean up old images if they were replaced
       if (oldImageUrl && oldImageUrl !== service.featuredImage) {
         await fileService.deleteFileByUrl(oldImageUrl);
+      }
+      if (oldThumbnailUrl && oldThumbnailUrl !== service.thumbnail) {
+        await fileService.deleteFileByUrl(oldThumbnailUrl);
       }
       
       res.json({
@@ -337,8 +352,9 @@ router.put(
       });
     } catch (error) {
       // Clean up uploaded files if there's an error
-      if (req.file) {
-        await fileService.deleteFileByUrl(req.file.filename);
+      const allFiles = req.files ? Object.values(req.files).flat() : (req.file ? [req.file] : []);
+      for (const f of allFiles) {
+        await fileService.deleteFileByUrl(f.filename).catch(() => {});
       }
       next(error);
     }
@@ -385,56 +401,6 @@ router.delete(
     }
   }
 );
-
-async function addPartnersToService(serviceId, partnerId) {
-    try {
-      const partner = await Partner.findById(partnerId);
-      if (!partner) {
-        throw new NotFoundError('Partner not found');
-      }
-      const service = await Service.findById(serviceId);
-      if (!service) {
-        throw new NotFoundError('Service not found');
-      }
-      // Check if already linked
-      if (!service.partners.includes(partnerId)) {
-        service.partners.push(partnerId);
-        await service.save();
-      }
-      // Check if already in partner's services
-      if (!partner.services.includes(serviceId)) {
-        partner.services.push(serviceId);
-        await partner.save();
-      }
-      return service;
-  } catch (error) {
-    console.error('Error adding partner to service:', error);
-    return null;
-  }
-}
-
-async function removePartnerFromService(serviceId, partnerId) {
-    try {
-      const partner = await Partner.findById(partnerId);
-      if (!partner) {
-        throw new NotFoundError('Partner not found');
-      }
-      const service = await Service.findById(serviceId);
-      if (!service) {
-        throw new NotFoundError('Service not found');
-      }
-      // Remove partner from service's partners array
-      service.partners = service.partners.filter(p => p.toString() !== partnerId);
-      await service.save();
-      // Remove service from partner's services array
-      partner.services = partner.services.filter(s => s.toString() !== serviceId);
-      await partner.save();
-      return service;
-    } catch (error) {
-      console.error('Error removing partner from service:', error);
-      return null;
-    }
-  }
 
 // Delete a service (admin only)
 router.delete(
