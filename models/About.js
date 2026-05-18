@@ -10,17 +10,20 @@ const ImageSchema = {
 };
 
 const AboutSchema = new mongoose.Schema({
-  // Optional legacy fields (kept so older docs still validate)
+  // Main About section
   title: { type: String },
+  description: { type: String },
   image: ImageSchema,
   content: {
-    blocks: [
-      {
-        type: { type: String },
-        data: { type: Object }
-      }
-    ]
+    blocks: [{
+      type: { type: String },
+      data: { type: Object }
+    }]
   },
+  isActive: { type: Boolean, default: true },
+  sortOrder: { type: Number, default: 0 },
+
+  // Features / Cards
   features: [{
     title: String,
     subtitle: String,
@@ -30,8 +33,41 @@ const AboutSchema = new mongoose.Schema({
     video: String,
     order: { type: Number, default: 0 }
   }],
+  features_isActive: { type: Boolean, default: true },
+  features_sortOrder: { type: Number, default: 2 },
 
-  // Dashboard-driven sections
+  // CEO section
+  ceo: {
+    name: String,
+    title: String,
+    role: String,
+    quote: String,
+    message: String,
+    image: ImageSchema,
+    imageDark: String,
+    imageLight: String
+  },
+  ceo_isActive: { type: Boolean, default: true },
+  ceo_sortOrder: { type: Number, default: 1 },
+
+  // Our Story section
+  ourStory: {
+    title: String,
+    subtitle: String,
+    description: String,
+    howWeGrew: {
+      title: String,
+      bullets: [String]
+    },
+    image: {
+      light: ImageSchema,
+      dark: ImageSchema
+    }
+  },
+  ourStory_isActive: { type: Boolean, default: true },
+  ourStory_sortOrder: { type: Number, default: 3 },
+
+  // Legacy dashboard-driven sections
   proud: {
     title: String,
     description: String,
@@ -57,14 +93,6 @@ const AboutSchema = new mongoose.Schema({
     title: String
   }],
 
-  // CEO / Story extensions used by the website
-  ceo: {
-    name: String,
-    title: String,
-    message: String,
-    imageDark: String,
-    imageLight: String
-  },
   story: {
     title: String,
     subtitle: String,
@@ -75,7 +103,6 @@ const AboutSchema = new mongoose.Schema({
   },
 
   language: { type: String, default: 'en' },
-  isActive: { type: Boolean, default: true }
 }, { timestamps: true });
 
 module.exports = mongoose.model('About', AboutSchema);

@@ -49,7 +49,7 @@ const contactSubmissionSchema = new mongoose.Schema({
     default: null
   },
   
-  // Response tracking
+  // Response tracking (legacy single response)
   response: {
     message: String,
     respondedBy: {
@@ -58,6 +58,17 @@ const contactSubmissionSchema = new mongoose.Schema({
     },
     respondedAt: Date
   },
+  
+  // Reply history
+  replies: [{
+    message: { type: String, required: true },
+    sentBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    },
+    sentAt: { type: Date, default: Date.now },
+    subject: String
+  }],
   
   // Additional metadata
   ipAddress: String,
