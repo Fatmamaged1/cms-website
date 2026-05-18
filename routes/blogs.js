@@ -4,18 +4,21 @@ const Blog = require('../models/Blog');
 
 const { withCache, clearCache } = require('../services/cache.js');
 const { BadRequestError, NotFoundError } = require('../utils/errors.js');
-const { handleUpload, fileService } = require('../services/upload');
+const { handleUpload, handleMultipleUploads, fileService } = require('../services/upload');
 const { sendResponse } = require('../utils/response');
-const { protect, authorize } = require('../middleware/auth');
+const { protect, authorize, optionalProtect } = require('../middleware/auth');
 const { validateRequest, parseFormDataJson } = require('../middleware/validation');
 
 const router = express.Router();
 // ✅ Get all blog posts with only the fields you want
-router.get('/', async (req, res, next) => {
+router.get('/', optionalProtect, async (req, res, next) => {
   try {
     const { category, tag, search, language = 'en' } = req.query;
 
     const query = { language };
+    if (!req.user) {
+      query.status = "published";
+    }
 
     if (category) query.categories = category;
     if (tag) query.tags = tag;
@@ -44,7 +47,7 @@ router.get('/', async (req, res, next) => {
 // Admin dashboard passes Mongo ObjectId; public site passes slug.
 const isBlogObjectId = (v) => /^[0-9a-fA-F]{24}$/.test(v);
 
-router.get('/:idOrSlug', async (req, res, next) => {
+router.get('/:idOrSlug', optionalProtect, async (req, res, next) => {
   try {
     const { idOrSlug } = req.params;
     const { language = 'en' } = req.query;
@@ -52,6 +55,10 @@ router.get('/:idOrSlug', async (req, res, next) => {
     const lookup = isBlogObjectId(idOrSlug)
       ? { _id: idOrSlug }
       : { slug: idOrSlug, language };
+
+    if (!req.user && !isBlogObjectId(idOrSlug)) {
+      lookup.status = "published";
+    }
 
     const post = await withCache(
       `blog:${idOrSlug}:${language}`,
@@ -82,7 +89,11 @@ const imageFields = ['featuredImage', 'thumbnail', 'authorImage'];
 const hasUploadedFile = (req, field) => Boolean(req.body[field]);
 
 router.post('/', protect, authorize('admin'),
-  handleUpload('featuredImage'), handleUpload('thumbnail'), handleUpload('authorImage'),
+  handleMultipleUploads([
+    { name: 'featuredImage', maxCount: 1 },
+    { name: 'thumbnail', maxCount: 1 },
+    { name: 'authorImage', maxCount: 1 }
+  ]),
   parseFormDataJson(['categories', 'tags', 'seo']), async (req, res, next) => {
 
   await Promise.all([
@@ -123,7 +134,11 @@ router.post('/', protect, authorize('admin'),
 
 // ✅ Update a blog post
 router.patch('/:id', protect, authorize('admin'),
-  handleUpload('featuredImage'), handleUpload('thumbnail'), handleUpload('authorImage'),
+  handleMultipleUploads([
+    { name: 'featuredImage', maxCount: 1 },
+    { name: 'thumbnail', maxCount: 1 },
+    { name: 'authorImage', maxCount: 1 }
+  ]),
   parseFormDataJson(['categories', 'tags', 'seo']), [
   param('id').isMongoId().withMessage('Invalid post ID'),
   body('title').optional().trim().notEmpty(),

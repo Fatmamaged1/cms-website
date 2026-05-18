@@ -22,6 +22,7 @@ const testimonialRoutes = require('./routes/testimonials');
 const termsRoutes = require('./routes/termsConditions');
 const privacyRoutes = require('./routes/privacyPolicy');
 const aiRoutes = require('./routes/ai');
+const uploadRoutes = require('./routes/upload');
 const { errorHandler } = require('./utils/errors');
 
 const app = express();
@@ -73,7 +74,7 @@ app.use(helmet({
 const rateLimit = require('express-rate-limit');
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  max: 1000, // limit each IP to 1000 requests per windowMs
   message: { 
     status: 'error', 
     message: 'Too many requests, please try again later.' 
@@ -132,6 +133,7 @@ app.use('/api/v1/testimonials', testimonialRoutes);
 app.use('/api/v1/terms-conditions', termsRoutes);
 app.use('/api/v1/privacy-policy', privacyRoutes);
 app.use('/api/v1/ai', aiRoutes);
+app.use('/api/v1/upload', uploadRoutes);
 
 // ===== Static Files =====
 // Allow cross-origin image loading from admin dashboard

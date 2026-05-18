@@ -2,11 +2,11 @@ const express = require("express");
 const router = express.Router();
 const careerController = require("../controllers/careerController");
 const { uploadFilePDF } = require("../services/upload");
-const { protect, authorize } = require("../middleware/auth");
+const { protect, authorize, optionalProtect } = require("../middleware/auth");
 
-// Public reads
-router.get("/", careerController.getAllCareers);
-router.get("/:idOrSlug", careerController.getCareerByIdOrSlug);
+// Public reads (optional auth: shows all for admin, only published for public)
+router.get("/", optionalProtect, careerController.getAllCareers);
+router.get("/:idOrSlug", optionalProtect, careerController.getCareerByIdOrSlug);
 
 // Public: anyone can apply
 router.post(

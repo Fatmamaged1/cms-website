@@ -113,11 +113,12 @@ const handleMultipleUploads = (fieldsArray, type = 'image') => {
       // If files were uploaded, map them into body
       if (req.files) {
         for (const field in req.files) {
-          req.body[field] = req.files[field].map(file => {
+          const urls = req.files[field].map(file => {
             return type === 'image'
               ? buildImageUrl(req, file.filename)
               : buildFileUrl(req, file.filename);
           });
+          req.body[field] = urls.length === 1 ? urls[0] : urls;
         }
       }
 

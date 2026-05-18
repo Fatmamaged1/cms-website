@@ -203,7 +203,7 @@ exports.uploadAvatar = async (req, res, next) => {
       await fileService.deleteFileByUrl(user.avatar).catch(() => {});
     }
 
-    const avatarUrl = `${req.protocol}://${req.get('host')}/${req.file.filename}`;
+    const avatarUrl = `${req.protocol}://${req.get('host')}/uploads/images/${req.file.filename}`;
     user.avatar = avatarUrl;
     await user.save();
 

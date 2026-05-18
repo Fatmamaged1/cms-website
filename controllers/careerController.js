@@ -5,6 +5,7 @@ const mongoose = require("mongoose");
 const slugify = require("slugify");
 const { sendCareerApplicationConfirmationEmail } = require("../services/sendMail");
 const { APPLICATION_STATUS } = require("../constants/applicationStatus");
+const { buildFileUrl } = require("../utils/imageUrl");
 // إنشاء وظيفة جديدة
 exports.createCareer = async (req, res, next) => {
   try {
@@ -30,7 +31,11 @@ exports.getAllCareers = async (req, res, next) => {
 
     const filter = {};
     if (search) filter.$text = { $search: search };
-    if (status) filter.status = status;
+    if (status) {
+      filter.status = status;
+    } else if (!req.user) {
+      filter.status = "published";
+    }
 
     const fieldsToSelect = [
       "title",
@@ -81,9 +86,14 @@ exports.getCareerByIdOrSlug = async (req, res, next) => {
   try {
     const { idOrSlug } = req.params;
 
-    const query = /^[0-9a-fA-F]{24}$/.test(idOrSlug)
+    const isObjectId = /^[0-9a-fA-F]{24}$/.test(idOrSlug);
+    const query = isObjectId
       ? { _id: idOrSlug }
       : { slug: idOrSlug };
+
+    if (!req.user && !isObjectId) {
+      query.status = "published";
+    }
 
     const career = await Career.findOne(query);
 
@@ -122,7 +132,7 @@ exports.applyToCareer = async (req, res, next) => {
 
     const job = await Career.findById(req.params.id).select("title location");
 
-    const resumeUrl = `${req.protocol}://${req.get("host")}/${path.basename(application.resume)}`;
+    const resumeUrl = buildFileUrl(req, path.basename(application.resume));
     try {
       await sendCareerApplicationConfirmationEmail(email, {
         fullName,
@@ -273,7 +283,7 @@ exports.getAllApplicationsByCarrerId = async (req, res, next) => {
     const enhancedApplications = applications.map(app => ({
       ...app,
       resume: app.resume
-        ? `${req.protocol}://${req.get("host")}/${path.basename(app.resume)}`
+        ? buildFileUrl(req, path.basename(app.resume))
         : null
     }));
 
@@ -317,7 +327,7 @@ exports.getApplicationById = async (req, res, next) => {
     const enhancedApplication = {
       ...application,
       resume: application.resume
-        ? `${req.protocol}://${req.get("host")}/${path.basename(application.resume)}`
+        ? buildFileUrl(req, path.basename(application.resume))
         : null
     };
 
