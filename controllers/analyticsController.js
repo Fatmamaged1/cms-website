@@ -68,6 +68,7 @@ exports.getOverview = async (req, res, next) => {
           byStatus: aggregateCount(await JobApplication.find().lean(), 'status'),
           recent: applications.map((a) => ({
             _id: a._id,
+            careerId: a.job?._id,
             fullName: a.fullName,
             jobTitle: a.job?.title || 'Unknown',
             status: a.status,

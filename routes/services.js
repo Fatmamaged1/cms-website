@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 const { body, param, query } = require('express-validator');
 const { validateRequest, parseFormDataJson } = require('../middleware/validation');
-const { protect, authorize } = require('../middleware/auth');
+const { protect, authorize, optionalProtect } = require('../middleware/auth');
 const Service = require('../models/Service');
 const { NotFoundError, BadRequestError } = require('../utils/errors');
 const { handleUpload, handleMultipleUploads, fileService } = require('../services/upload');
@@ -70,6 +70,7 @@ const setLanguage = (req, res, next) => {
 router.get(
   '/',
   [
+    optionalProtect,
     query('page').optional().isInt({ min: 1 }).toInt(),
     query('limit').optional().isInt({ min: 1, max: 100 }).toInt(),
     query('featured').optional().isBoolean().toBoolean(),
@@ -90,10 +91,10 @@ router.get(
     } = req.query;
     const { language } = req;
 
-    const query = { 
-      language,
-      isActive: true 
-    };
+    const query = { language };
+    if (!req.user || req.user.role !== 'admin') {
+      query.isActive = true;
+    }
 
     if (featured !== undefined) {
       query.featured = featured;
