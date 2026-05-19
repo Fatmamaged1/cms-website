@@ -2,7 +2,6 @@ const PageContent = require('../models/PageContent');
 const Service = require('../models/Service');
 const Blog = require('../models/Blog');
 const { NotFoundError } = require('../utils/errors');
-const AboutService = require('../services/AboutService');
 const { buildImageUrl } = require('../utils/imageUrl');
 const _ = require('lodash');
 

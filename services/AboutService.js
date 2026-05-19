@@ -7,7 +7,7 @@ const _ = require('lodash');
 class AboutService {
   
   static async getAbout(language) {
-    let about = await About.findOne({ language });
+    let about = await About.findOne({ language }).lean();
     if (!about) {
       about = await About.create({
         title: 'Your Trusted Medical Partner in Saudi Arabia',
@@ -33,6 +33,7 @@ class AboutService {
         ourStory_isActive: true,
         ourStory_sortOrder: 3,
       });
+      about = about.toObject();
     }
 
     return {

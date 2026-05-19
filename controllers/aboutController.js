@@ -2,6 +2,7 @@
 const AboutService = require('../services/AboutService');
 const About = require('../models/About');
 const { buildImageUrl } = require('../utils/imageUrl');
+const _ = require('lodash');
 
 // Helper function to create image object from file
 const createImageObject = (file, req) => ({
@@ -11,6 +12,33 @@ const createImageObject = (file, req) => ({
   mimeType: file.mimetype || '',
   uploadedAt: new Date()
 });
+
+// Map flat underscore keys to nested paths so $set populates nested objects correctly
+const mapFlatToNested = (data) => {
+  const flatToNested = {
+    'ceo_title': 'ceo.title',
+    'ceo_name': 'ceo.name',
+    'ceo_role': 'ceo.role',
+    'ceo_quote': 'ceo.quote',
+    'ceo_message': 'ceo.message',
+    'ceo_image': 'ceo.image',
+    'ourStory_title': 'ourStory.title',
+    'ourStory_subtitle': 'ourStory.subtitle',
+    'ourStory_description': 'ourStory.description',
+    'ourStory_howWeGrew_title': 'ourStory.howWeGrew.title',
+    'ourStory_howWeGrew_bullets': 'ourStory.howWeGrew.bullets',
+    'ourStory_image_light': 'ourStory.image.light',
+    'ourStory_image_dark': 'ourStory.image.dark',
+  };
+  const result = { ...data };
+  for (const [flatKey, nestedPath] of Object.entries(flatToNested)) {
+    if (result[flatKey] !== undefined) {
+      _.set(result, nestedPath, result[flatKey]);
+      delete result[flatKey];
+    }
+  }
+  return result;
+};
 
 exports.updateAbout = async (req, res, next) => {
     try {
@@ -89,15 +117,18 @@ exports.updateAbout = async (req, res, next) => {
         data.ourStory_sortOrder = parseInt(data.ourStory_sortOrder, 10);
       }
 
+      // Map flat keys to nested paths before saving
+      const nestedData = mapFlatToNested(data);
+
       // Update or create
       let about = await About.findOne({ language: data.language || 'en' });
       if (about) {
-        about = await About.findByIdAndUpdate(about._id, { $set: data }, { new: true });
+        about = await About.findByIdAndUpdate(about._id, { $set: nestedData }, { new: true });
       } else {
-        about = await About.create(data);
+        about = await About.create(nestedData);
       }
 
-      res.status(200).json({ success: true, status: 'success', data: about });
+      res.status(200).json({ success: true, status: 'success', data: about.toObject() });
     } catch (error) {
       next(error);
     }
@@ -151,15 +182,18 @@ exports.updateAboutSection = async (req, res, next) => {
       }
     }
 
+    // Map flat keys to nested paths before saving
+    const nestedData = mapFlatToNested(data);
+
     // Update or create
     let about = await About.findOne({ language: data.language || 'en' });
     if (about) {
-      about = await About.findByIdAndUpdate(about._id, { $set: data }, { new: true });
+      about = await About.findByIdAndUpdate(about._id, { $set: nestedData }, { new: true });
     } else {
-      about = await About.create(data);
+      about = await About.create(nestedData);
     }
 
-    res.status(200).json({ success: true, status: 'success', message: `Section "${sectionKey}" updated`, data: about });
+    res.status(200).json({ success: true, status: 'success', message: `Section "${sectionKey}" updated`, data: about.toObject() });
   } catch (error) {
     next(error);
   }

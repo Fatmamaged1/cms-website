@@ -1,22 +1,32 @@
 /**
- * AI Service - Google Gemini Integration for Content Generation
+ * AI Service - Groq Integration for Content Generation
+ * Uses Groq API with LLaMA 3.3 70B for fast, high-quality content generation.
  */
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const Groq = require('groq-sdk');
 
-// Initialize Gemini client
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+// Initialize Groq client
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+const MODEL = 'llama-3.3-70b-versatile';
 
 /**
- * Helper to generate content with Gemini and parse JSON response
+ * Helper to generate content with Groq and parse JSON response
  */
-async function generateWithGemini(systemPrompt, userPrompt) {
-  const fullPrompt = `${systemPrompt}\n\n${userPrompt}`;
-  const result = await model.generateContent(fullPrompt);
-  const response = result.response;
-  const text = response.text();
+async function generateWithGroq(systemPrompt, userPrompt) {
+  const completion = await groq.chat.completions.create({
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt },
+    ],
+    model: MODEL,
+    temperature: 0.7,
+    max_tokens: 4096,
+    response_format: { type: 'json_object' },
+  });
 
-  // Extract JSON from response (Gemini may wrap in markdown code blocks)
+  const text = completion.choices[0]?.message?.content;
+  if (!text) throw new Error('Groq returned empty response');
+
+  // Extract JSON from response (may still have markdown despite response_format)
   const jsonMatch = text.match(/```json\n?([\s\S]*?)\n?```/) ||
                     text.match(/```\n?([\s\S]*?)\n?```/) ||
                     text.match(/\{[\s\S]*\}/);
@@ -62,7 +72,7 @@ async function generateBlogContent(prompt, language = 'en') {
     }
   }`;
 
-  return generateWithGemini(systemPrompt, userPrompt);
+  return generateWithGroq(systemPrompt, userPrompt);
 }
 
 /**
@@ -109,7 +119,7 @@ async function generateServiceContent(prompt, language = 'en') {
     }
   }`;
 
-  return generateWithGemini(systemPrompt, userPrompt);
+  return generateWithGroq(systemPrompt, userPrompt);
 }
 
 /**
@@ -140,7 +150,7 @@ async function generateCareerContent(prompt, language = 'en') {
     }
   }`;
 
-  return generateWithGemini(systemPrompt, userPrompt);
+  return generateWithGroq(systemPrompt, userPrompt);
 }
 
 /**
@@ -183,7 +193,7 @@ async function generateAboutContent(prompt, language = 'en') {
     ]
   }`;
 
-  return generateWithGemini(systemPrompt, userPrompt);
+  return generateWithGroq(systemPrompt, userPrompt);
 }
 
 module.exports = {

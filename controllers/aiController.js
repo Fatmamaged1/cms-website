@@ -18,10 +18,10 @@ exports.generateBlog = async (req, res, next) => {
       });
     }
 
-    if (!process.env.GEMINI_API_KEY) {
+    if (!process.env.GROQ_API_KEY) {
       return res.status(503).json({
         success: false,
-        message: 'AI service is not configured. Please add GEMINI_API_KEY to environment variables.'
+        message: 'AI service is not configured. Please add GROQ_API_KEY to environment variables.'
       });
     }
 
@@ -35,10 +35,10 @@ exports.generateBlog = async (req, res, next) => {
   } catch (error) {
     console.error('AI Blog Generation Error:', error);
 
-    if (error.code === 'insufficient_quota') {
+    if (error.status === 429) {
       return res.status(503).json({
         success: false,
-        message: 'AI service quota exceeded. Please try again later.'
+        message: 'AI service rate limit exceeded. Please try again later.'
       });
     }
 
@@ -61,10 +61,10 @@ exports.generateService = async (req, res, next) => {
       });
     }
 
-    if (!process.env.GEMINI_API_KEY) {
+    if (!process.env.GROQ_API_KEY) {
       return res.status(503).json({
         success: false,
-        message: 'AI service is not configured. Please add GEMINI_API_KEY to environment variables.'
+        message: 'AI service is not configured. Please add GROQ_API_KEY to environment variables.'
       });
     }
 
@@ -78,10 +78,10 @@ exports.generateService = async (req, res, next) => {
   } catch (error) {
     console.error('AI Service Generation Error:', error);
 
-    if (error.code === 'insufficient_quota') {
+    if (error.status === 429) {
       return res.status(503).json({
         success: false,
-        message: 'AI service quota exceeded. Please try again later.'
+        message: 'AI service rate limit exceeded. Please try again later.'
       });
     }
 
@@ -104,10 +104,10 @@ exports.generateCareer = async (req, res, next) => {
       });
     }
 
-    if (!process.env.GEMINI_API_KEY) {
+    if (!process.env.GROQ_API_KEY) {
       return res.status(503).json({
         success: false,
-        message: 'AI service is not configured. Please add GEMINI_API_KEY to environment variables.'
+        message: 'AI service is not configured. Please add GROQ_API_KEY to environment variables.'
       });
     }
 
@@ -121,10 +121,10 @@ exports.generateCareer = async (req, res, next) => {
   } catch (error) {
     console.error('AI Career Generation Error:', error);
 
-    if (error.code === 'insufficient_quota') {
+    if (error.status === 429) {
       return res.status(503).json({
         success: false,
-        message: 'AI service quota exceeded. Please try again later.'
+        message: 'AI service rate limit exceeded. Please try again later.'
       });
     }
 
@@ -147,10 +147,10 @@ exports.generateAbout = async (req, res, next) => {
       });
     }
 
-    if (!process.env.GEMINI_API_KEY) {
+    if (!process.env.GROQ_API_KEY) {
       return res.status(503).json({
         success: false,
-        message: 'AI service is not configured. Please add GEMINI_API_KEY to environment variables.'
+        message: 'AI service is not configured. Please add GROQ_API_KEY to environment variables.'
       });
     }
 
@@ -164,10 +164,10 @@ exports.generateAbout = async (req, res, next) => {
   } catch (error) {
     console.error('AI About Generation Error:', error);
 
-    if (error.code === 'insufficient_quota') {
+    if (error.status === 429) {
       return res.status(503).json({
         success: false,
-        message: 'AI service quota exceeded. Please try again later.'
+        message: 'AI service rate limit exceeded. Please try again later.'
       });
     }
 
