@@ -6,20 +6,25 @@ class FileService {
     this.baseDir = path.join(process.cwd(), 'public/uploads');
   }
 
+  // Extract only the origin from BASE_URL (strip any path like /api/v1)
+  _getBaseUrl() {
+    let base = process.env.BASE_URL || 'http://localhost:3000';
+    try {
+      const url = new URL(base);
+      return url.origin;
+    } catch {
+      return base.replace(/\/+$/, '');
+    }
+  }
+
   // Delete a file by URL
   async deleteFileByUrl(fileUrl) {
     try {
       if (!fileUrl) return true;
-      
-      // Extract the relative path from the URL
-      const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
-      const relativePath = fileUrl.replace(baseUrl, '');
-      
+      const baseUrl = this._getBaseUrl();
+      const relativePath = fileUrl.replace(baseUrl, '').replace(/^(\.\.\/|\/)+/, '');
       if (!relativePath) return false;
-      
       const filePath = path.join(process.cwd(), 'public', relativePath);
-      
-      // Check if file exists
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
         return true;
@@ -35,11 +40,9 @@ class FileService {
   async deleteFilesByUrls(urls = []) {
     try {
       if (!Array.isArray(urls) || urls.length === 0) return true;
-      
       const results = await Promise.all(
         urls.map(url => this.deleteFileByUrl(url))
       );
-      
       return results.every(result => result === true);
     } catch (error) {
       console.error('Error deleting files:', error);
@@ -50,12 +53,9 @@ class FileService {
   // Check if a file exists by URL
   fileExists(fileUrl) {
     if (!fileUrl) return false;
-    
-    const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
-    const relativePath = fileUrl.replace(baseUrl, '');
-    
+    const baseUrl = this._getBaseUrl();
+    const relativePath = fileUrl.replace(baseUrl, '').replace(/^(\.\.\/|\/)+/, '');
     if (!relativePath) return false;
-    
     const filePath = path.join(process.cwd(), 'public', relativePath);
     return fs.existsSync(filePath);
   }
@@ -63,14 +63,10 @@ class FileService {
   // Get file details
   getFileDetails(fileUrl) {
     if (!fileUrl) return null;
-    
-    const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
-    const relativePath = fileUrl.replace(baseUrl, '');
-    
+    const baseUrl = this._getBaseUrl();
+    const relativePath = fileUrl.replace(baseUrl, '').replace(/^(\.\.\/|\/)+/, '');
     if (!relativePath) return null;
-    
     const filePath = path.join(process.cwd(), 'public', relativePath);
-    
     try {
       const stats = fs.statSync(filePath);
       return {

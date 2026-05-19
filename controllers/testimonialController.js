@@ -1,11 +1,10 @@
 const Testimonial = require("../models/Testimonial");
+const { buildImageUrl } = require("../utils/imageUrl");
 
 exports.createTestimonial = async (req, res, next) => {
   try {
     const { name, content, rating } = req.body;
-    const baseUrl = `${req.protocol}://${req.get("host")}`;
-    const icon = req.file ? `${baseUrl}/uploads/images/${req.file.filename}` : "";
-
+    const icon = req.file ? buildImageUrl(req, req.file.filename) : "";
     const testimonial = await Testimonial.create({ name, content, rating, icon });
     return res.status(201).json({ success: true, data: testimonial });
   } catch (error) {
@@ -38,8 +37,7 @@ exports.updateTestimonial = async (req, res, next) => {
   try {
     const updateData = { ...req.body };
     if (req.file) {
-      const baseUrl = `${req.protocol}://${req.get("host")}`;
-      updateData.icon = `${baseUrl}/uploads/images/${req.file.filename}`;
+      updateData.icon = buildImageUrl(req, req.file.filename);
     }
     if (req.body.removeIcon === "true") {
       updateData.icon = "";

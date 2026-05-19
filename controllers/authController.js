@@ -4,6 +4,7 @@ const crypto = require("crypto");
 const User = require("../models/User");
 const { sendPasswordResetEmail } = require("../services/sendMail");
 const { fileService } = require("../services/upload");
+const { buildImageUrl } = require("../utils/imageUrl");
 
 const generateToken = (user) => {
   return jwt.sign(
@@ -203,7 +204,7 @@ exports.uploadAvatar = async (req, res, next) => {
       await fileService.deleteFileByUrl(user.avatar).catch(() => {});
     }
 
-    const avatarUrl = `${req.protocol}://${req.get('host')}/uploads/images/${req.file.filename}`;
+    const avatarUrl = buildImageUrl(req, req.file.filename);
     user.avatar = avatarUrl;
     await user.save();
 

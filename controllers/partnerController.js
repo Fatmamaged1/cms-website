@@ -34,7 +34,7 @@ exports.getAllPartners = async (req, res, next) => {
 exports.getPartnerById = async (req, res, next) => {
     try {
         const { id } = req.params;
-        const partner = await Partner.findById(id);
+        const partner = await Partner.findById(id).populate("services", "title slug thumbnail excerpt");
         if (!partner) {
             return res.status(404).json({ success: false, message: "Partner not found" });
         }
