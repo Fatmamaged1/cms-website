@@ -2,7 +2,7 @@ const express = require('express');
 const { body, param, validationResult } = require('express-validator');
 const Blog = require('../models/Blog');
 
-const { withCache, clearCache } = require('../services/cache.js');
+const { clearCache } = require('../services/cache.js');
 const { BadRequestError, NotFoundError } = require('../utils/errors.js');
 const { handleUpload, handleMultipleUploads, fileService } = require('../services/upload');
 const { sendResponse } = require('../utils/response');
@@ -24,14 +24,10 @@ router.get('/', optionalProtect, async (req, res, next) => {
     if (tag) query.tags = tag;
     if (search) query.$text = { $search: search };
 
-    const posts = await withCache(
-      `blogs:all:${JSON.stringify(query)}`,
-      () => Blog.find(query)
+    const posts = await Blog.find(query)
         .select('_id language isActive seo slug contentType title subtitle excerpt featuredImage status publishedAt createdAt updatedAt')
         .sort({ createdAt: -1 })
-        .lean(),
-      3600
-    );
+        .lean();
 
     sendResponse(res, {
       message: 'All blog posts fetched successfully',
@@ -60,18 +56,14 @@ router.get('/:idOrSlug', optionalProtect, async (req, res, next) => {
       lookup.status = "published";
     }
 
-    const post = await withCache(
-      `blog:${idOrSlug}:${language}`,
-      () => Blog.findOneAndUpdate(
-        lookup,
-        { $inc: { views: 1 } },
-        { new: true }
-      )
-        .populate('relatedPosts', 'title slug excerpt thumbnail featuredImage createdAt')
-        .populate('author', 'name email')
-        .lean(),
-      3600
-    );
+    const post = await Blog.findOneAndUpdate(
+      lookup,
+      { $inc: { views: 1 } },
+      { new: true }
+    )
+      .populate('relatedPosts', 'title slug excerpt thumbnail featuredImage createdAt')
+      .populate('author', 'name email')
+      .lean();
 
     if (!post) return next(new NotFoundError('No blog post found', 404));
 
@@ -120,7 +112,7 @@ router.post('/', protect, authorize('admin'),
 
     const post = await Blog.create(postData);
     await clearCache(`blog:${post.slug}`);
-    await clearCache('blog:list*');
+    await clearCache('blogs:all');
 
     sendResponse(res, {
       statusCode: 201,
@@ -186,7 +178,7 @@ router.patch('/:id', protect, authorize('admin'),
     }
 
     await clearCache(`blog:${post.slug}`);
-    await clearCache('blog:list*');
+    await clearCache('blogs:all');
 
     sendResponse(res, {
       message: 'Blog post updated successfully',
@@ -224,7 +216,7 @@ router.delete('/:id', protect, authorize('admin'),
 
     // امسح الكاش
     await clearCache(`blog:${post.slug}`);
-    await clearCache('blog:list:*');
+    await clearCache('blogs:all');
 
     return sendResponse(res, {
       message: 'Blog post deleted successfully',

@@ -7,6 +7,7 @@ const services = require('./services');
 const blogs = require('./blogs');
 const careers = require('./careers');
 const contact = require('./contact');
+const analytics = require('./analytics');
 
 // Mount routes
 router.use('/pages', pages);
@@ -14,6 +15,7 @@ router.use('/services', services);
 router.use('/blogs', blogs);
 router.use('/careers', careers);
 router.use('/contact', contact);
+router.use('/analytics', analytics);
 
 // Health check endpoint
 router.get('/health', (req, res) => {

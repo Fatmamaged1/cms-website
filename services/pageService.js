@@ -291,11 +291,11 @@ class PageService {
       };
 
       // Add isActive/sortOrder to array-type sections (features, stats, clients)
-      if (!allSections.features.isActive) allSections.features.isActive = true;
+      if (allSections.features.isActive === undefined) allSections.features.isActive = true;
       if (!allSections.features.sortOrder && allSections.features.sortOrder !== 0) allSections.features.sortOrder = 2;
-      if (!allSections.stats.isActive) allSections.stats.isActive = true;
+      if (allSections.stats.isActive === undefined) allSections.stats.isActive = true;
       if (!allSections.stats.sortOrder && allSections.stats.sortOrder !== 0) allSections.stats.sortOrder = 4;
-      if (!allSections.clients.isActive) allSections.clients.isActive = true;
+      if (allSections.clients.isActive === undefined) allSections.clients.isActive = true;
       if (!allSections.clients.sortOrder && allSections.clients.sortOrder !== 0) allSections.clients.sortOrder = 9;
 
       // Filter out inactive sections for public API

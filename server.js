@@ -23,6 +23,7 @@ const termsRoutes = require('./routes/termsConditions');
 const privacyRoutes = require('./routes/privacyPolicy');
 const aiRoutes = require('./routes/ai');
 const uploadRoutes = require('./routes/upload');
+const analyticsRoutes = require('./routes/analytics');
 const { errorHandler } = require('./utils/errors');
 
 const app = express();
@@ -134,6 +135,7 @@ app.use('/api/v1/terms-conditions', termsRoutes);
 app.use('/api/v1/privacy-policy', privacyRoutes);
 app.use('/api/v1/ai', aiRoutes);
 app.use('/api/v1/upload', uploadRoutes);
+app.use('/api/v1/analytics', analyticsRoutes);
 
 // ===== Static Files =====
 // Allow cross-origin image loading from admin dashboard

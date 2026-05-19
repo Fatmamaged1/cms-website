@@ -139,6 +139,18 @@ exports.updateAboutSection = async (req, res, next) => {
       data.sortOrder = parseInt(data.sortOrder, 10);
     }
 
+    // Handle section-specific isActive/sortOrder (sent as ceo_isActive, features_isActive, ourStory_isActive, etc.)
+    for (const prefix of ['ceo', 'features', 'ourStory']) {
+      const activeKey = `${prefix}_isActive`;
+      const sortKey = `${prefix}_sortOrder`;
+      if (data[activeKey] !== undefined) {
+        data[activeKey] = data[activeKey] === 'true' || data[activeKey] === true;
+      }
+      if (data[sortKey] !== undefined) {
+        data[sortKey] = parseInt(data[sortKey], 10);
+      }
+    }
+
     // Update or create
     let about = await About.findOne({ language: data.language || 'en' });
     if (about) {
