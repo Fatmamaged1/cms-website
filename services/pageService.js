@@ -38,7 +38,15 @@ const DEFAULT_HOME_STRUCTURE = {
       isActive: true,
       sortOrder: 1
     },
-    features: [],
+    features: {
+      isActive: true,
+      sortOrder: 2,
+      items: [
+        { title: "Vision", subtitle: "Our Vision", content: "To be the leading provider of innovative orthopedic and surgical solutions...", order: 0 },
+        { title: "Mission", subtitle: "Our Mission", content: "To empower healthcare professionals with superior quality tools...", order: 1 },
+        { title: "Values", subtitle: "Our Core Values", content: "Integrity, Excellence, and Patient-centric Innovation...", order: 2 }
+      ]
+    },
     ceo: {
       title: 'CEO Message',
       name: 'Dr. Islam Ali',
@@ -49,14 +57,18 @@ const DEFAULT_HOME_STRUCTURE = {
       isActive: true,
       sortOrder: 3
     },
-    stats: [
-      { title: "10+", subtitle: "Years Experience", content: "A decade of serving patients", order: 0 },
-      { title: "50+", subtitle: "Partner Hospitals", content: "Leading healthcare facilities", order: 1 },
-      { title: "1000+", subtitle: "Surgical Procedures", content: "Empowering successful operations", order: 2 },
-      { title: "100%", subtitle: "Client Satisfaction", content: "Dedicated support and clinical care", order: 3 },
-      { title: "20+", subtitle: "Global Brands", content: "World-class orthopedic systems", order: 4 },
-      { title: "24/7", subtitle: "Clinical Support", content: "Always beside our partners", order: 5 }
-    ],
+    stats: {
+      isActive: true,
+      sortOrder: 4,
+      items: [
+        { title: "10+", subtitle: "Years Experience", content: "A decade of serving patients", order: 0 },
+        { title: "50+", subtitle: "Partner Hospitals", content: "Leading healthcare facilities", order: 1 },
+        { title: "1000+", subtitle: "Surgical Procedures", content: "Empowering successful operations", order: 2 },
+        { title: "100%", subtitle: "Client Satisfaction", content: "Dedicated support and clinical care", order: 3 },
+        { title: "20+", subtitle: "Global Brands", content: "World-class orthopedic systems", order: 4 },
+        { title: "24/7", subtitle: "Clinical Support", content: "Always beside our partners", order: 5 }
+      ]
+    },
     ourStory: {
       title: 'Our Story',
       subtitle: 'Driven by Purpose, Guided by Care',
@@ -92,33 +104,37 @@ const DEFAULT_HOME_STRUCTURE = {
       isActive: true,
       sortOrder: 8
     },
-    clients:[
-      { name: "King Fahd Medical City", logo: "https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=400" },
-      { name: "Saudi German Hospital", logo: "https://images.unsplash.com/photo-1581092919535-6c87c1dc42a4?w=400" },
-      { name: "Cairo University Hospitals", logo: "https://images.unsplash.com/photo-1504439904031-93ded9a6a44c?w=400" },
-      { name: "Cleveland Clinic Abu Dhabi", logo: "https://images.unsplash.com/photo-1580281657525-6c91a75deb07?w=400" },
-      { name: "Sheikh Khalifa Medical City", logo: "https://images.unsplash.com/photo-1579154204601-01588f351e90?w=400" },
-      { name: "Mayo Clinic Care Network", logo: "https://images.unsplash.com/photo-1581090700227-4c4e1ee37d5c?w=400" },
-      { name: "Johns Hopkins Aramco Healthcare", logo: "https://images.unsplash.com/photo-1584982827414-6d50e23d2b9f?w=400" },
-      { name: "Ain Shams Specialized Hospital", logo: "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?w=400" },
-      { name: "Dr. Sulaiman Al Habib Medical Group", logo: "https://images.unsplash.com/photo-1582719471137-c3967ffb1c98?w=400" },
-      { name: "Dar Al Fouad Hospital", logo: "https://images.unsplash.com/photo-1550831107-1553da8c8464?w=400" },
-      { name: "Saudi Red Crescent Authority", logo: "https://images.unsplash.com/photo-1576765974250-4c8de596e87d?w=400" },
-      { name: "National Guard Health Affairs", logo: "https://images.unsplash.com/photo-1624890258731-4392d31fdf58?w=400" },
-      { name: "Zulekha Hospital", logo: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400" },
-      { name: "American Hospital Dubai", logo: "https://images.unsplash.com/photo-1583912267557-5f43a44f2c2d?w=400" },
-      { name: "Prince Sultan Cardiac Center", logo: "https://images.unsplash.com/photo-1504813184591-01572f98c85f?w=400" },
-      { name: "International Medical Center Jeddah", logo: "https://images.unsplash.com/photo-1600959907703-25f1fc1cdbb6?w=400" },
-      { name: "Misr International Hospital", logo: "https://images.unsplash.com/photo-1585547413111-1c38e1dd1de0?w=400" },
-      { name: "Nasser Institute Hospital", logo: "https://images.unsplash.com/photo-1597764699515-1f96e8b6e72c?w=400" },
-      { name: "King Saud Medical City", logo: "https://images.unsplash.com/photo-1576765973369-56b8e5f71170?w=400" },
-      { name: "Dar Al Shifa Hospital", logo: "https://images.unsplash.com/photo-1586769852836-bc069f19e1b9?w=400" },
-      { name: "Coptic Hospital Cairo", logo: "https://images.unsplash.com/photo-1600959907703-25f1fc1cdbb6?w=400" },
-      { name: "Saudi German Clinics", logo: "https://images.unsplash.com/photo-1624890258590-5d2fba9ee3f2?w=400" },
-      { name: "El Salam International Hospital", logo: "https://images.unsplash.com/photo-1600959907703-25f1fc1cdbb6?w=400" },
-      { name: "New Kasr El Ainy Hospital", logo: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400" },
-      { name: "Pre Med Research Center", logo: "https://images.unsplash.com/photo-1583912267557-5f43a44f2c2d?w=400" }
-    ],
+    clients: {
+      isActive: true,
+      sortOrder: 9,
+      items: [
+        { name: "King Fahd Medical City", logo: "https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=400" },
+        { name: "Saudi German Hospital", logo: "https://images.unsplash.com/photo-1581092919535-6c87c1dc42a4?w=400" },
+        { name: "Cairo University Hospitals", logo: "https://images.unsplash.com/photo-1504439904031-93ded9a6a44c?w=400" },
+        { name: "Cleveland Clinic Abu Dhabi", logo: "https://images.unsplash.com/photo-1580281657525-6c91a75deb07?w=400" },
+        { name: "Sheikh Khalifa Medical City", logo: "https://images.unsplash.com/photo-1579154204601-01588f351e90?w=400" },
+        { name: "Mayo Clinic Care Network", logo: "https://images.unsplash.com/photo-1581090700227-4c4e1ee37d5c?w=400" },
+        { name: "Johns Hopkins Aramco Healthcare", logo: "https://images.unsplash.com/photo-1584982827414-6d50e23d2b9f?w=400" },
+        { name: "Ain Shams Specialized Hospital", logo: "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?w=400" },
+        { name: "Dr. Sulaiman Al Habib Medical Group", logo: "https://images.unsplash.com/photo-1582719471137-c3967ffb1c98?w=400" },
+        { name: "Dar Al Fouad Hospital", logo: "https://images.unsplash.com/photo-1550831107-1553da8c8464?w=400" },
+        { name: "Saudi Red Crescent Authority", logo: "https://images.unsplash.com/photo-1576765974250-4c8de596e87d?w=400" },
+        { name: "National Guard Health Affairs", logo: "https://images.unsplash.com/photo-1624890258731-4392d31fdf58?w=400" },
+        { name: "Zulekha Hospital", logo: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400" },
+        { name: "American Hospital Dubai", logo: "https://images.unsplash.com/photo-1583912267557-5f43a44f2c2d?w=400" },
+        { name: "Prince Sultan Cardiac Center", logo: "https://images.unsplash.com/photo-1504813184591-01572f98c85f?w=400" },
+        { name: "International Medical Center Jeddah", logo: "https://images.unsplash.com/photo-1600959907703-25f1fc1cdbb6?w=400" },
+        { name: "Misr International Hospital", logo: "https://images.unsplash.com/photo-1585547413111-1c38e1dd1de0?w=400" },
+        { name: "Nasser Institute Hospital", logo: "https://images.unsplash.com/photo-1597764699515-1f96e8b6e72c?w=400" },
+        { name: "King Saud Medical City", logo: "https://images.unsplash.com/photo-1576765973369-56b8e5f71170?w=400" },
+        { name: "Dar Al Shifa Hospital", logo: "https://images.unsplash.com/photo-1586769852836-bc069f19e1b9?w=400" },
+        { name: "Coptic Hospital Cairo", logo: "https://images.unsplash.com/photo-1600959907703-25f1fc1cdbb6?w=400" },
+        { name: "Saudi German Clinics", logo: "https://images.unsplash.com/photo-1624890258590-5d2fba9ee3f2?w=400" },
+        { name: "El Salam International Hospital", logo: "https://images.unsplash.com/photo-1600959907703-25f1fc1cdbb6?w=400" },
+        { name: "New Kasr El Ainy Hospital", logo: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400" },
+        { name: "Pre Med Research Center", logo: "https://images.unsplash.com/photo-1583912267557-5f43a44f2c2d?w=400" }
+      ]
+    },
   }
 };
 
@@ -185,6 +201,21 @@ class PageService {
         };
       };
 
+      const normalizeArraySection = (section, defaultItems, defaultSortOrder) => {
+        if (!section || Array.isArray(section)) {
+          return {
+            items: Array.isArray(section) && section.length > 0 ? section : defaultItems,
+            isActive: Array.isArray(section) ? (section.isActive !== undefined ? section.isActive : true) : true,
+            sortOrder: Array.isArray(section) ? (section.sortOrder !== undefined ? section.sortOrder : defaultSortOrder) : defaultSortOrder
+          };
+        }
+        return {
+          items: Array.isArray(section.items) && section.items.length > 0 ? section.items : defaultItems,
+          isActive: section.isActive !== undefined ? section.isActive : true,
+          sortOrder: section.sortOrder !== undefined ? section.sortOrder : defaultSortOrder
+        };
+      };
+
       const hero = ensureSectionMeta({
         title: homePage.sections?.hero?.title || "Innovative Medical Solutions for a Healthier Tomorrow",
         subtitle: homePage.sections?.hero?.subtitle || "Partnering with healthcare providers to bring quality, safety, and confidence to every procedure.",
@@ -214,13 +245,12 @@ class PageService {
         sortOrder: homePage.sections?.ceo?.sortOrder
       }, 3);
 
-      const features = homePage.sections?.features && homePage.sections.features.length > 0 ? homePage.sections.features : [
+      const defaultFeatures = [
         { title: "Vision", subtitle: "Our Vision", content: "To be the leading provider of innovative orthopedic and surgical solutions...", order: 0 },
         { title: "Mission", subtitle: "Our Mission", content: "To empower healthcare professionals with superior quality tools...", order: 1 },
         { title: "Values", subtitle: "Our Core Values", content: "Integrity, Excellence, and Patient-centric Innovation...", order: 2 }
       ];
-
-      const stats = homePage.sections?.stats && homePage.sections.stats.length > 0 ? homePage.sections.stats : [
+      const defaultStats = [
         { title: "10+", subtitle: "Years Experience", content: "A decade of serving patients", order: 0 },
         { title: "50+", subtitle: "Partner Hospitals", content: "Leading healthcare facilities", order: 1 },
         { title: "1000+", subtitle: "Surgical Procedures", content: "Empowering successful operations", order: 2 },
@@ -228,6 +258,9 @@ class PageService {
         { title: "20+", subtitle: "Global Brands", content: "World-class orthopedic systems", order: 4 },
         { title: "24/7", subtitle: "Clinical Support", content: "Always beside our partners", order: 5 }
       ];
+
+      const features = normalizeArraySection(homePage.sections?.features, defaultFeatures, 2);
+      const stats = normalizeArraySection(homePage.sections?.stats, defaultStats, 4);
 
       const ourStory = ensureSectionMeta({
         title: homePage.sections?.ourStory?.title || "Our Story",
@@ -272,8 +305,11 @@ class PageService {
         sortOrder: homePage.sections?.blog?.sortOrder
       }, 8);
 
-      const clientsMeta = homePage.sections?.clients || [];
-      const clients = Array.isArray(clientsMeta) ? clientsMeta : DEFAULT_HOME_STRUCTURE.sections.clients;
+      const defaultClients = [
+        { name: "King Fahd Medical City", logo: "https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=400" },
+        { name: "Saudi German Hospital", logo: "https://images.unsplash.com/photo-1581092919535-6c87c1dc42a4?w=400" }
+      ];
+      const clients = normalizeArraySection(homePage.sections?.clients, defaultClients, 9);
 
       // Build all sections with their sortOrder
       const allSections = {
@@ -289,26 +325,17 @@ class PageService {
         clients
       };
 
-      // Add isActive/sortOrder to array-type sections (features, stats, clients)
-      if (allSections.features.isActive === undefined) allSections.features.isActive = true;
-      if (!allSections.features.sortOrder && allSections.features.sortOrder !== 0) allSections.features.sortOrder = 2;
-      if (allSections.stats.isActive === undefined) allSections.stats.isActive = true;
-      if (!allSections.stats.sortOrder && allSections.stats.sortOrder !== 0) allSections.stats.sortOrder = 4;
-      if (allSections.clients.isActive === undefined) allSections.clients.isActive = true;
-      if (!allSections.clients.sortOrder && allSections.clients.sortOrder !== 0) allSections.clients.sortOrder = 9;
-
       // Filter out inactive sections for public API
       const sectionsToReturn = includeInactive ? allSections : Object.fromEntries(
         Object.entries(allSections).filter(([key, value]) => {
-          if (Array.isArray(value)) return value.isActive !== false;
-          return value.isActive !== false;
+          return value?.isActive !== false;
         })
       );
 
-      // Sort sections by sortOrder (for the response we return an ordered object)
+      // Sort sections by sortOrder
       const sortedSectionEntries = Object.entries(sectionsToReturn).sort((a, b) => {
-        const aOrder = Array.isArray(a[1]) ? (a[1].sortOrder ?? 99) : (a[1].sortOrder ?? 99);
-        const bOrder = Array.isArray(b[1]) ? (b[1].sortOrder ?? 99) : (b[1].sortOrder ?? 99);
+        const aOrder = a[1]?.sortOrder ?? 99;
+        const bOrder = b[1]?.sortOrder ?? 99;
         return aOrder - bOrder;
       });
 
@@ -388,11 +415,23 @@ class PageService {
       'ourStory_howWeGrew_bullets': 'ourStory.howWeGrew.bullets'
     };
 
+    const arraySectionKeys = ['features', 'stats', 'clients'];
+
     for (const [flatKey, path] of Object.entries(jsonFields)) {
       if (data[flatKey] !== undefined) {
         try {
           const parsed = typeof data[flatKey] === 'string' ? JSON.parse(data[flatKey]) : data[flatKey];
-          _.set(sections, path, parsed);
+          if (Array.isArray(parsed) && arraySectionKeys.includes(path)) {
+            const existing = existingSections?.[path];
+            const defaultSortOrder = path === 'features' ? 2 : path === 'stats' ? 4 : 9;
+            _.set(sections, path, {
+              items: parsed,
+              isActive: existing?.isActive !== undefined ? existing.isActive : true,
+              sortOrder: existing?.sortOrder !== undefined ? existing.sortOrder : defaultSortOrder
+            });
+          } else {
+            _.set(sections, path, parsed);
+          }
         } catch (e) {
           console.error(`Error parsing JSON for field ${flatKey}:`, e.message);
         }
@@ -545,7 +584,31 @@ class PageService {
     // Merge with existing section data
     const existingSection = existingSections[sectionKey];
     let mergedSection;
-    if (Array.isArray(existingSection)) {
+
+    const isArraySection = ['features', 'stats', 'clients'].includes(sectionKey);
+
+    if (isArraySection) {
+      // Normalize existing section to { items, isActive, sortOrder }
+      let base = { items: [], isActive: true, sortOrder: 99 };
+      if (Array.isArray(existingSection)) {
+        base = { items: existingSection, isActive: true, sortOrder: 99 };
+      } else if (existingSection && typeof existingSection === 'object') {
+        base = { ...base, ...existingSection };
+        base.items = Array.isArray(base.items) ? base.items : [];
+      }
+
+      if (Array.isArray(parsedData)) {
+        base.items = parsedData;
+      } else if (parsedData && typeof parsedData === 'object') {
+        if (Array.isArray(parsedData.items)) {
+          base.items = parsedData.items;
+        }
+        if (parsedData.isActive !== undefined) base.isActive = parsedData.isActive;
+        if (parsedData.sortOrder !== undefined) base.sortOrder = parsedData.sortOrder;
+      }
+
+      mergedSection = base;
+    } else if (Array.isArray(existingSection)) {
       if (Array.isArray(parsedData)) {
         mergedSection = parsedData;
       } else {
@@ -702,7 +765,7 @@ class PageService {
 
     // Get all section entries with their sortOrder
     const sectionEntries = Object.entries(existingSections).map(([key, value]) => {
-      const sortOrder = Array.isArray(value) ? (value.sortOrder ?? 99) : (value?.sortOrder ?? 99);
+      const sortOrder = value?.sortOrder ?? 99;
       return { key, sortOrder, value };
     });
 
@@ -727,10 +790,7 @@ class PageService {
     // Build updated sections object
     const updatedSections = { ...existingSections };
     for (const entry of sectionEntries) {
-      if (Array.isArray(entry.value)) {
-        updatedSections[entry.key] = [...entry.value];
-        updatedSections[entry.key].sortOrder = entry.sortOrder;
-      } else if (typeof entry.value === 'object' && entry.value !== null) {
+      if (typeof entry.value === 'object' && entry.value !== null) {
         updatedSections[entry.key] = { ...entry.value, sortOrder: entry.sortOrder };
       } else {
         updatedSections[entry.key] = entry.value;
