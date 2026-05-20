@@ -545,9 +545,15 @@ class PageService {
     // Merge with existing section data
     const existingSection = existingSections[sectionKey];
     let mergedSection;
-    if (Array.isArray(existingSection) && Array.isArray(parsedData)) {
-      mergedSection = parsedData;
-    } else if (typeof existingSection === 'object' && existingSection !== null && !Array.isArray(existingSection)) {
+    if (Array.isArray(existingSection)) {
+      if (Array.isArray(parsedData)) {
+        mergedSection = parsedData;
+      } else {
+        mergedSection = [...existingSection];
+        if (parsedData.isActive !== undefined) mergedSection.isActive = parsedData.isActive;
+        if (parsedData.sortOrder !== undefined) mergedSection.sortOrder = parsedData.sortOrder;
+      }
+    } else if (typeof existingSection === 'object' && existingSection !== null) {
       mergedSection = { ...existingSection, ...parsedData };
     } else {
       mergedSection = parsedData;
@@ -722,7 +728,8 @@ class PageService {
     const updatedSections = { ...existingSections };
     for (const entry of sectionEntries) {
       if (Array.isArray(entry.value)) {
-        updatedSections[entry.key] = { ...entry.value, sortOrder: entry.sortOrder };
+        updatedSections[entry.key] = [...entry.value];
+        updatedSections[entry.key].sortOrder = entry.sortOrder;
       } else if (typeof entry.value === 'object' && entry.value !== null) {
         updatedSections[entry.key] = { ...entry.value, sortOrder: entry.sortOrder };
       } else {
