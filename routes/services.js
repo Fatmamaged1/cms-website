@@ -267,7 +267,7 @@ router.put(
     { name: 'thumbnail', maxCount: 1 }
   ]),
   processContentUploads, // Process any file uploads in content blocks
-  parseFormDataJson(['categories', 'tags', 'seo', 'featured', 'isActive']),
+  parseFormDataJson(['categories', 'tags', 'seo', 'featured', 'isActive', 'removeFeaturedImage', 'removeThumbnail']),
   [
     param('id').isMongoId().withMessage('Invalid service ID'),
     body('title').optional().isString().trim().notEmpty().withMessage('Title is required'),
@@ -319,6 +319,24 @@ router.put(
       if (Array.isArray(req.body.thumbnail)) {
         updateData.thumbnail = req.body.thumbnail[0];
       }
+
+      // Handle explicit image removal — set field to null and delete old file
+      if (updateData.removeFeaturedImage === 'true' || updateData.removeFeaturedImage === true) {
+        delete updateData.removeFeaturedImage;
+        if (!updateData.featuredImage) {
+          updateData.featuredImage = null;
+        }
+      } else {
+        delete updateData.removeFeaturedImage;
+      }
+      if (updateData.removeThumbnail === 'true' || updateData.removeThumbnail === true) {
+        delete updateData.removeThumbnail;
+        if (!updateData.thumbnail) {
+          updateData.thumbnail = null;
+        }
+      } else {
+        delete updateData.removeThumbnail;
+      }
       
       // Don't allow changing the slug directly
       if (updateData.slug) {
@@ -339,7 +357,7 @@ router.put(
         { new: true, runValidators: true }
       );
       
-      // Clean up old images if they were replaced
+      // Clean up old images if they were replaced or removed
       if (oldImageUrl && oldImageUrl !== service.featuredImage) {
         await fileService.deleteFileByUrl(oldImageUrl);
       }
