@@ -469,6 +469,44 @@ router.delete(
   }
   );
 
+// Toggle service active status (admin only, by id or slug)
+router.patch(
+  '/:idOrSlug/toggle-active',
+  protect,
+  authorize('admin'),
+  [
+    param('idOrSlug').isString().trim().notEmpty(),
+    body('isActive').isBoolean().withMessage('isActive must be a boolean')
+  ],
+  validateRequest,
+  async (req, res, next) => {
+    try {
+      const { idOrSlug } = req.params;
+      const { isActive } = req.body;
+
+      const lookup = isObjectId(idOrSlug)
+        ? { _id: idOrSlug }
+        : { slug: idOrSlug };
+
+      const service = await Service.findOne(lookup);
+      if (!service) {
+        throw new NotFoundError('Service not found');
+      }
+
+      service.isActive = isActive;
+      await service.save();
+
+      res.json({
+        status: 'success',
+        message: `Service ${isActive ? 'activated' : 'deactivated'} successfully`,
+        data: service
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
 // ===== FAQ Routes =====
 
 // Add FAQ to a service
